@@ -1,0 +1,20 @@
+[
+  {
+    "modid": "ZenSummoning",
+    "name": "ZenSummoning",
+    "description": "Allows pack makers to set up custom summoning scenarios",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://github.com/TeamDman/ZenSummoning",
+    "updateUrl": "",
+    "authorList": [
+      "TeamDman"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": [
+      "CraftTweaker2"
+    ]
+  }
+]
