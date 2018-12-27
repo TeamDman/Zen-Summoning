@@ -27,14 +27,21 @@ minecraft {
     // Use non-default mappings at your own risk. they may not always work.
     // simply re-run your setup task after changing the mappings to update your workspace.
     mappings = project.mcpVersion
+    clientRunArgs += "--username=ZenSummoning"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
+
 repositories {
     mavenCentral()
+    maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
+    maven { url "http://tehnut.info/maven" } // HWYLA
+    maven { url "http://maven.blamejared.com/" } // crafttweaker
 }
-
 dependencies {
+    deobfCompile "mezz.jei:jei_${minecraftVersion}:${jeiVersion}"
+    deobfCompile "mcp.mobius.waila:Hwyla:${hwylaVersion}"
+    compile "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.+"
 }
 
 processResources {

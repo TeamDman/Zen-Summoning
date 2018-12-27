@@ -1,6 +1,6 @@
 [
   {
-    "modid": "ZenSummoning",
+    "modid": "zensummoning",
     "name": "ZenSummoning",
     "description": "Allows pack makers to set up custom summoning scenarios",
     "version": "${version}",
@@ -14,7 +14,7 @@
     "logoFile": "",
     "screenshots": [],
     "dependencies": [
-      "CraftTweaker2"
+      "crafttweaker2"
     ]
   }
 ]
