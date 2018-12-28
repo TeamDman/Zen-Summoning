@@ -1,6 +1,7 @@
 package ca.teamdman.zensummoning;
 
-import ca.teamdman.zensummoning.tiles.TileAltar;
+import ca.teamdman.zensummoning.common.CommonProxy;
+import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -23,8 +24,8 @@ public class ZenSummoning {
 	};
 	public static final String MOD_NAME = "ZenSummoning";
 	public static final String VERSION  = "1.0.0";
-	public static final String CLIENT_PROXY = "ca.teamdman.zensummoning.ClientProxy";
-	public static final String COMMON_PROXY = "ca.teamdman.zensummoning.CommonProxy";
+	public static final String CLIENT_PROXY = "ca.teamdman.zensummoning.client.ClientProxy";
+	public static final String COMMON_PROXY = "ca.teamdman.zensummoning.common.CommonProxy";
 
 	@Mod.Instance(MOD_ID)
 	public static ZenSummoning INSTANCE;

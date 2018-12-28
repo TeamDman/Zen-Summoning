@@ -1,11 +1,15 @@
-package ca.teamdman.zensummoning;
+package ca.teamdman.zensummoning.client;
 
+import ca.teamdman.zensummoning.client.render.tile.TESRAltar;
+import ca.teamdman.zensummoning.common.CommonProxy;
+import ca.teamdman.zensummoning.common.Registrar;
+import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class ClientProxy extends CommonProxy {
@@ -20,5 +24,7 @@ public class ClientProxy extends CommonProxy {
 		for (Item item : Registrar.items.get(Registrar.EntryType.DEFAULT)) {
 			ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
 		}
+
+		ClientRegistry.bindTileEntitySpecialRenderer(TileAltar.class, new TESRAltar());
 	}
 }

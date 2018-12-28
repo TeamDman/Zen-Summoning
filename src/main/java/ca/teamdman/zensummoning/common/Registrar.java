@@ -1,6 +1,7 @@
-package ca.teamdman.zensummoning;
+package ca.teamdman.zensummoning.common;
 
-import ca.teamdman.zensummoning.blocks.BlockAltar;
+import ca.teamdman.zensummoning.ZenSummoning;
+import ca.teamdman.zensummoning.common.blocks.BlockAltar;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
