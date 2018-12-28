@@ -7,14 +7,14 @@ import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -70,10 +70,12 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 					playerIn.setHeldItem(hand, altar.pushStack(playerIn.getHeldItem(hand)));
 				}
 			} else {
-				if (altar.summon(playerIn.getHeldItem(hand))) {
-					playerIn.sendMessage(new TextComponentString("Yeeet"));
+				if (altar.summon(playerIn, hand)) {
+					playerIn.sendMessage(new TextComponentTranslation("chat.zensummoning.success"));
+					world.playSound(null, pos.getX(),pos.getY(),pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
 				} else {
-					playerIn.sendMessage(new TextComponentString("Oof"));
+					playerIn.sendMessage(new TextComponentTranslation("chat.zensummoning.failure"));
+					world.playSound(null, pos.getX(),pos.getY(),pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);
 				}
 			}
 		}

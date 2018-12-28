@@ -1,15 +1,21 @@
 package ca.teamdman.zensummoning.common.tiles;
 
+import ca.teamdman.zensummoning.SummoningDirector;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import crafttweaker.mc1120.data.NBTConverter;
+import javafx.util.Pair;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.passive.EntityCow;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.EnumHand;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -34,9 +40,36 @@ public class TileAltar extends TileEntity {
 	 *
 	 * @return True if something was summoned.
 	 */
-	public boolean summon(ItemStack stack) {
-		Entity mob = new EntityCow(world);
-		mob.setPosition(pos.getX(), pos.getY() + 2, pos.getZ());
+	public boolean summon(EntityPlayer player, EnumHand hand) {
+		ItemStack handStack = player.getHeldItem(hand);
+		SummoningDirector.SummonInfo info = SummoningDirector.getSummonInfo(handStack);
+		if (info == null)
+			return false;
+
+		Multimap<ItemStack, Pair<Integer, Integer>> reagentMap = ArrayListMultimap.create();
+		for (ItemStack reagentStack : info.reagents) {
+			int remaining = reagentStack.getCount();
+			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
+				ItemStack slotStack = inventory.getStackInSlot(slot);
+				if (reagentStack.isItemEqual(slotStack)) {
+					reagentMap.put(reagentStack, new Pair<>(slot, Math.min(remaining, slotStack.getCount())));
+					remaining -= slotStack.getCount();
+				}
+			}
+			if (remaining > 0)
+				return false;
+		}
+
+		reagentMap.values().forEach(x -> inventory.extractItem(x.getKey(), x.getValue(), false));
+		handStack.shrink(info.catalyst.getCount());
+		player.setHeldItem(hand, handStack);
+
+		Entity mob = EntityList.createEntityByIDFromName(info.mob, world);
+		if (mob == null)
+			return false;
+
+		mob.readFromNBT((NBTTagCompound) NBTConverter.from(info.data));
+		mob.setPosition(pos.getX() + 0.5, pos.getY() + 1 + info.height, pos.getZ() + 0.5);
 		world.spawnEntity(mob);
 		return true;
 	}
@@ -70,17 +103,36 @@ public class TileAltar extends TileEntity {
 		return ItemStack.EMPTY;
 	}
 
+	/**
+	 * Returns the inventory as an immutable array list, this inventory is synced manually.
+	 *
+	 * @return The inventory of the block on the client side.
+	 */
 	@SideOnly(Side.CLIENT)
 	public ImmutableList<ItemStack> getClientStacks() {
+		return getStacksFromInventory(clientInventory);
+	}
+
+	private ImmutableList<ItemStack> getStacksFromInventory(ItemStackHandler handler) {
 		ImmutableList.Builder<ItemStack> builder = ImmutableList.builder();
 		ItemStack                        stack;
-		for (int slot = 0; slot < clientInventory.getSlots(); slot++) {
-			if (!(stack = clientInventory.getStackInSlot(slot)).isEmpty()) {
+		for (int slot = 0; slot < handler.getSlots(); slot++) {
+			if (!(stack = handler.getStackInSlot(slot)).isEmpty()) {
 				builder.add(stack);
 			}
 		}
 		return builder.build();
 	}
+
+	/**
+	 * Gets the inventory as an array list.
+	 *
+	 * @return ArrayList containing the inventory.
+	 */
+	public ImmutableList<ItemStack> getStacks() {
+		return getStacksFromInventory(inventory);
+	}
+
 
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
