@@ -70,8 +70,11 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 					playerIn.setHeldItem(hand, altar.pushStack(playerIn.getHeldItem(hand)));
 				}
 			} else {
-
-				playerIn.sendMessage(new TextComponentString("Yeeet"));
+				if (altar.summon(playerIn.getHeldItem(hand))) {
+					playerIn.sendMessage(new TextComponentString("Yeeet"));
+				} else {
+					playerIn.sendMessage(new TextComponentString("Oof"));
+				}
 			}
 		}
 		return true;

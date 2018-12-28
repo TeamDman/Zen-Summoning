@@ -1,6 +1,8 @@
 package ca.teamdman.zensummoning.common.tiles;
 
 import com.google.common.collect.ImmutableList;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
@@ -26,6 +28,18 @@ public class TileAltar extends TileEntity {
 			markDirty();
 		}
 	};
+
+	/**
+	 * Attempts to perform a summon, given a catalyst.
+	 *
+	 * @return True if something was summoned.
+	 */
+	public boolean summon(ItemStack stack) {
+		Entity mob = new EntityCow(world);
+		mob.setPosition(pos.getX(), pos.getY() + 2, pos.getZ());
+		world.spawnEntity(mob);
+		return true;
+	}
 
 	/**
 	 * Adds a stack to the buffer, this does not modify the given stack.
