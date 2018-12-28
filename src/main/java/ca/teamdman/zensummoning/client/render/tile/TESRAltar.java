@@ -4,35 +4,38 @@ import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import org.lwjgl.opengl.GL11;
 
 public class TESRAltar extends TileEntitySpecialRenderer<TileAltar> {
-	private ImmutableList<ItemStack> stacks;
 
 	@Override
 	public void render(TileAltar te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(x, y+1.5, z);
-		GlStateManager.scale(0.1,0.1,0.1);
-
 		super.render(te, x, y, z, partialTicks, destroyStage, alpha);
 
-		if (te.renderTick++ % 20 == 0) {
-			stacks = te.getStacks();
-		}
+		ImmutableList<ItemStack> stacks = te.getClientStacks();
 		if (stacks != null && !stacks.isEmpty()) {
-			RenderHelper.enableStandardItemLighting();
+			int dist = stacks.size();
+			int rot  = 360 / dist;
+			GlStateManager.pushMatrix();
+			GlStateManager.translate(x + 0.5, y + 0.1, z + 0.5);
+			GlStateManager.rotate((int) getWorld().getTotalWorldTime(), 0, 1, 0);
 			for (ItemStack stack : stacks) {
+				GlStateManager.rotate(rot, 0, 1, 0);
 
+				GlStateManager.pushMatrix();
+				GlStateManager.translate(1 + dist / 15f, 0, 0);
+				GlStateManager.rotate(90, 1, 0, 0);
+				GlStateManager.rotate(-90,0,0,1);
 				Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+				GlStateManager.popMatrix();
 			}
-			RenderHelper.disableStandardItemLighting();
+
+			GlStateManager.popMatrix();
 		}
+
 	}
 
 }

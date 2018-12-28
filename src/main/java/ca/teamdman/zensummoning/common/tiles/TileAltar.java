@@ -2,14 +2,19 @@ package ca.teamdman.zensummoning.common.tiles;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -17,15 +22,16 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class TileAltar extends TileEntity implements ITickable {
-	private final ItemStackHandler inventory = new ItemStackHandler(16) {
+	private final ItemStackHandler inventory  = new ItemStackHandler(16) {
 		@Override
 		protected void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
+			world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 			markDirty();
 		}
 	};
-	public int renderTick = 0;
-	private final AxisAlignedBB    succ      = new AxisAlignedBB(-2, -2, -2, 2, 2, 2).offset(this.pos);
+	public final ItemStackHandler clientInventory = new ItemStackHandler();
+	private final AxisAlignedBB    succ       = new AxisAlignedBB(-2, -2, -2, 2, 2, 2).offset(this.pos);
 
 	@Override
 	public void update() {
@@ -64,11 +70,12 @@ public class TileAltar extends TileEntity implements ITickable {
 		return ItemStack.EMPTY;
 	}
 
-	public ImmutableList<ItemStack> getStacks() {
+	@SideOnly(Side.CLIENT)
+	public ImmutableList<ItemStack> getClientStacks() {
 		ImmutableList.Builder<ItemStack> builder = ImmutableList.builder();
-		ItemStack stack;
-		for (int slot = 0; slot < inventory.getSlots(); slot++) {
-			if (!(stack = inventory.getStackInSlot(slot)).isEmpty()) {
+		ItemStack                        stack;
+		for (int slot = 0; slot < clientInventory.getSlots(); slot++) {
+			if (!(stack = clientInventory.getStackInSlot(slot)).isEmpty()) {
 				builder.add(stack);
 			}
 		}
@@ -78,6 +85,7 @@ public class TileAltar extends TileEntity implements ITickable {
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		inventory.deserializeNBT(compound.getCompoundTag("inventory"));
+		clientInventory.deserializeNBT(compound.getCompoundTag("inventory"));
 		super.readFromNBT(compound);
 	}
 
@@ -87,6 +95,31 @@ public class TileAltar extends TileEntity implements ITickable {
 		compound.setTag("inventory", inventory.serializeNBT());
 		return super.writeToNBT(compound);
 	}
+
+	@Nullable
+	@Override
+	public SPacketUpdateTileEntity getUpdatePacket() {
+		NBTTagCompound comp = new NBTTagCompound();
+		writeToNBT(comp);
+		return new SPacketUpdateTileEntity(this.pos, 255, comp);
+	}
+
+	@Override
+	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+		super.onDataPacket(net, pkt);
+		readFromNBT(pkt.getNbtCompound());
+	}
+
+	@Override
+	public NBTTagCompound getUpdateTag() {
+		return writeToNBT(new NBTTagCompound());
+	}
+
+	@Override
+	public void handleUpdateTag(NBTTagCompound tag) {
+		super.handleUpdateTag(tag);
+	}
+
 
 	@Override
 	public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {

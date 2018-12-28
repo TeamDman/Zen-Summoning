@@ -15,6 +15,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -32,6 +33,13 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 	public TileEntity createNewTileEntity(World worldIn, int meta) {
 		return new TileAltar();
 	}
+
+	@Override
+	public boolean isOpaqueCube(IBlockState state) {
+		return false;
+	}
+
+
 
 	@Override
 	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
@@ -61,8 +69,6 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 				} else {
 					playerIn.setHeldItem(hand, altar.pushStack(playerIn.getHeldItem(hand)));
 				}
-				world.notifyBlockUpdate(pos, state, state, 3);
-				altar.markDirty();
 			} else {
 
 				playerIn.sendMessage(new TextComponentString("Yeeet"));
