@@ -1,16 +1,12 @@
 package ca.teamdman.zensummoning.common.tiles;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.relauncher.Side;
@@ -19,10 +15,10 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-public class TileAltar extends TileEntity implements ITickable {
-	private final ItemStackHandler inventory  = new ItemStackHandler(16) {
+public class TileAltar extends TileEntity {
+	public final  ItemStackHandler clientInventory = new ItemStackHandler();
+	private final ItemStackHandler inventory       = new ItemStackHandler(256) {
 		@Override
 		protected void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
@@ -30,16 +26,6 @@ public class TileAltar extends TileEntity implements ITickable {
 			markDirty();
 		}
 	};
-	public final ItemStackHandler clientInventory = new ItemStackHandler();
-	private final AxisAlignedBB    succ       = new AxisAlignedBB(-2, -2, -2, 2, 2, 2).offset(this.pos);
-
-	@Override
-	public void update() {
-		if (this.world != null && !this.world.isRemote && this.world.getTotalWorldTime() % 20 == 0) {
-			List<EntityItem> drops = this.world.getEntitiesWithinAABB(EntityItem.class, succ, EntitySelectors.IS_ALIVE);
-			drops.forEach(System.out::println);
-		}
-	}
 
 	/**
 	 * Adds a stack to the buffer, this does not modify the given stack.

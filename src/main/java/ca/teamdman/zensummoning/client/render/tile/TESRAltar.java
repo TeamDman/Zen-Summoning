@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
 public class TESRAltar extends TileEntitySpecialRenderer<TileAltar> {
@@ -18,7 +17,7 @@ public class TESRAltar extends TileEntitySpecialRenderer<TileAltar> {
 		ImmutableList<ItemStack> stacks = te.getClientStacks();
 		if (stacks != null && !stacks.isEmpty()) {
 			int dist = stacks.size();
-			int rot  = 360 / dist;
+			float rot  = 360f / dist;
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(x + 0.5, y + 0.1, z + 0.5);
 			GlStateManager.rotate((int) getWorld().getTotalWorldTime(), 0, 1, 0);
@@ -28,7 +27,7 @@ public class TESRAltar extends TileEntitySpecialRenderer<TileAltar> {
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(1 + dist / 15f, 0, 0);
 				GlStateManager.rotate(90, 1, 0, 0);
-				GlStateManager.rotate(-90,0,0,1);
+				GlStateManager.rotate(-90, 0, 0, 1);
 				Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
 				GlStateManager.popMatrix();
 			}
