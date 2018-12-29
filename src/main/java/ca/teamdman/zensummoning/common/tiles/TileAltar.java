@@ -4,11 +4,12 @@ import ca.teamdman.zensummoning.SummoningDirector;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import crafttweaker.mc1120.data.NBTConverter;
 import javafx.util.Pair;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
@@ -16,6 +17,10 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -24,9 +29,10 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
-public class TileAltar extends TileEntity {
-	public final  ItemStackHandler clientInventory = new ItemStackHandler();
-	private final ItemStackHandler inventory       = new ItemStackHandler(256) {
+public class TileAltar extends TileEntity implements ITickable {
+	public final  ItemStackHandler             clientInventory = new ItemStackHandler();
+	public  final int                          TIME_TO_SPAWN   = 5 * 20;
+	private final ItemStackHandler             inventory       = new ItemStackHandler(256) {
 		@Override
 		protected void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
@@ -34,15 +40,44 @@ public class TileAltar extends TileEntity {
 			markDirty();
 		}
 	};
+	public        int                          renderTick      = -1;
+	public        int                          summonCountdown = -1;
+	private       SummoningDirector.SummonInfo summonInfo;
+
+	@Override
+	public void update() {
+		if (!isSpawning()) {
+			if (renderTick > -1)
+				renderTick--;
+			return;
+		}
+
+		summonCountdown--;
+		renderTick++;
+
+		if (summonCountdown > 0)
+			return;
+		summonFinish();
+	}
+
+	/**
+	 * Determines whether or not the altar is in the middle of spawning an entity.
+	 *
+	 * @return isSpawning
+	 */
+	public boolean isSpawning() {
+		return summonInfo != null && summonCountdown >= 0;
+	}
 
 	/**
 	 * Attempts to perform a summon, given a catalyst.
+	 * Called server-only from {@link ca.teamdman.zensummoning.common.blocks.BlockAltar#onBlockActivated(World, BlockPos, IBlockState, EntityPlayer, EnumHand, EnumFacing, float, float, float)}
 	 *
 	 * @return True if something was summoned.
 	 */
-	public boolean summon(EntityPlayer player, EnumHand hand) {
-		ItemStack handStack = player.getHeldItem(hand);
-		SummoningDirector.SummonInfo info = SummoningDirector.getSummonInfo(handStack);
+	public boolean summonStart(EntityPlayer player, EnumHand hand) {
+		ItemStack                    handStack = player.getHeldItem(hand);
+		SummoningDirector.SummonInfo info      = SummoningDirector.getSummonInfo(handStack);
 		if (info == null)
 			return false;
 
@@ -60,18 +95,44 @@ public class TileAltar extends TileEntity {
 				return false;
 		}
 
+		summonInfo = info;
+		summonCountdown = TIME_TO_SPAWN;
+		renderTick = 0;
+
+		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
+
+
 		reagentMap.values().forEach(x -> inventory.extractItem(x.getKey(), x.getValue(), false));
 		handStack.shrink(info.catalyst.getCount());
 		player.setHeldItem(hand, handStack);
 
-		Entity mob = EntityList.createEntityByIDFromName(info.mob, world);
-		if (mob == null)
-			return false;
-
-		mob.readFromNBT((NBTTagCompound) NBTConverter.from(info.data));
-		mob.setPosition(pos.getX() + 0.5, pos.getY() + 1 + info.height, pos.getZ() + 0.5);
-		world.spawnEntity(mob);
 		return true;
+	}
+
+	/**
+	 * Spawns the current {@link ca.teamdman.zensummoning.SummoningDirector.SummonInfo} into the world
+	 */
+	private void summonFinish() {
+		summonCountdown = -1;
+		if (world.isRemote) {
+			summonInfo = null;
+			return;
+		}
+
+		Entity mob = EntityList.createEntityByIDFromName(summonInfo.mob, world);
+		if (mob == null) {
+			return;
+		}
+
+		mob.readFromNBT(summonInfo.data);
+		mob.setPosition(pos.getX() + 0.5, pos.getY() + 1 + summonInfo.height, pos.getZ() + 0.5);
+		world.spawnEntity(mob);
+		summonInfo = null;
+
+		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.EVOCATION_ILLAGER_PREPARE_WOLOLO, SoundCategory.BLOCKS, 0.5f, 1f);
+
 	}
 
 	/**
@@ -113,6 +174,12 @@ public class TileAltar extends TileEntity {
 		return getStacksFromInventory(clientInventory);
 	}
 
+	/**
+	 * Composes an ${@link ImmutableList} containing the given inventory contents.
+	 *
+	 * @param handler Inventory
+	 * @return List of slot contents.
+	 */
 	private ImmutableList<ItemStack> getStacksFromInventory(ItemStackHandler handler) {
 		ImmutableList.Builder<ItemStack> builder = ImmutableList.builder();
 		ItemStack                        stack;
@@ -124,20 +191,17 @@ public class TileAltar extends TileEntity {
 		return builder.build();
 	}
 
-	/**
-	 * Gets the inventory as an array list.
-	 *
-	 * @return ArrayList containing the inventory.
-	 */
-	public ImmutableList<ItemStack> getStacks() {
-		return getStacksFromInventory(inventory);
-	}
-
 
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		inventory.deserializeNBT(compound.getCompoundTag("inventory"));
-		clientInventory.deserializeNBT(compound.getCompoundTag("inventory"));
+		renderTick = compound.getInteger("renderTick");
+		summonCountdown = compound.getInteger("summonCountdown");
+		if (compound.hasKey("summonInfo"))
+			summonInfo = new SummoningDirector.SummonInfo(compound.getCompoundTag("summonInfo"));
+		else if (!isSpawning()) // keep inventory desync'd so render can animate the reagents
+			clientInventory.deserializeNBT(compound.getCompoundTag("inventory"));
+
 		super.readFromNBT(compound);
 	}
 
@@ -145,6 +209,10 @@ public class TileAltar extends TileEntity {
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("inventory", inventory.serializeNBT());
+		compound.setInteger("renderTick", renderTick);
+		compound.setInteger("summonCountdown", summonCountdown);
+		if (isSpawning())
+			compound.setTag("summonInfo", summonInfo.serializeNBT());
 		return super.writeToNBT(compound);
 	}
 
@@ -153,7 +221,7 @@ public class TileAltar extends TileEntity {
 	public SPacketUpdateTileEntity getUpdatePacket() {
 		NBTTagCompound comp = new NBTTagCompound();
 		writeToNBT(comp);
-		return new SPacketUpdateTileEntity(this.pos, 255, comp);
+		return new SPacketUpdateTileEntity(pos, 255, comp);
 	}
 
 	@Override
@@ -171,7 +239,6 @@ public class TileAltar extends TileEntity {
 	public void handleUpdateTag(NBTTagCompound tag) {
 		super.handleUpdateTag(tag);
 	}
-
 
 	@Override
 	public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {

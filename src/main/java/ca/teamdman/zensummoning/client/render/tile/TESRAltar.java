@@ -16,18 +16,23 @@ public class TESRAltar extends TileEntitySpecialRenderer<TileAltar> {
 
 		ImmutableList<ItemStack> stacks = te.getClientStacks();
 		if (stacks != null && !stacks.isEmpty()) {
-			int dist = stacks.size();
-			float rot  = 360f / dist;
+			int     dist       = stacks.size();
+			float   rot        = 360f / dist;
+			float   scale      = 1 - 1f / te.TIME_TO_SPAWN * (te.renderTick + partialTicks);
+			boolean isSpawning = te.isSpawning();
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(x + 0.5, y + 0.1, z + 0.5);
 			GlStateManager.rotate((int) getWorld().getTotalWorldTime(), 0, 1, 0);
 			for (ItemStack stack : stacks) {
 				GlStateManager.rotate(rot, 0, 1, 0);
-
+				if (isSpawning) {
+					GlStateManager.translate(0, 0.3f / te.TIME_TO_SPAWN * (te.renderTick + partialTicks), 0);
+				}
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(1 + dist / 15f, 0, 0);
 				GlStateManager.rotate(90, 1, 0, 0);
 				GlStateManager.rotate(-90, 0, 0, 1);
+				GlStateManager.scale(scale,scale,scale);
 				Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
 				GlStateManager.popMatrix();
 			}

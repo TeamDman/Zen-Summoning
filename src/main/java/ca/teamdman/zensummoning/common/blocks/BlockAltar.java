@@ -11,11 +11,12 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -34,11 +35,11 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 		return new TileAltar();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean isOpaqueCube(IBlockState state) {
 		return false;
 	}
-
 
 
 	@Override
@@ -66,16 +67,18 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 			if (!playerIn.isSneaking()) {
 				if (playerIn.getHeldItem(hand).isEmpty()) {
 					playerIn.setHeldItem(hand, altar.popStack());
+					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, -0.5f);
 				} else {
 					playerIn.setHeldItem(hand, altar.pushStack(playerIn.getHeldItem(hand)));
+					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, 2f);
 				}
 			} else {
-				if (altar.summon(playerIn, hand)) {
+				if (altar.summonStart(playerIn, hand)) {
 					playerIn.sendMessage(new TextComponentTranslation("chat.zensummoning.success"));
-					world.playSound(null, pos.getX(),pos.getY(),pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
+					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
 				} else {
 					playerIn.sendMessage(new TextComponentTranslation("chat.zensummoning.failure"));
-					world.playSound(null, pos.getX(),pos.getY(),pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);
+					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);
 				}
 			}
 		}
