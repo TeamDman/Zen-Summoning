@@ -27,6 +27,7 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 		setRegistryName(new ResourceLocation(ZenSummoning.MOD_NAME, "altar"));
 		setTranslationKey("altar");
 		setCreativeTab(ZenSummoning.CREATIVE_TAB);
+		setHardness(3);
 	}
 
 	@Nullable
