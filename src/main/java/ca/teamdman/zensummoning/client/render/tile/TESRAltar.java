@@ -17,15 +17,13 @@ public class TESRAltar extends TileEntitySpecialRenderer<TileAltar> {
 		ImmutableList<ItemStack> stacks = te.getClientStacks();
 		if (stacks != null && !stacks.isEmpty()) {
 			int     dist       = stacks.size();
-			float   rot        = 360f / dist;
 			float   scale      = 1 - 1f / te.TIME_TO_SPAWN * (te.renderTick + partialTicks);
-			boolean isSpawning = te.isSpawning();
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(x + 0.5, y + 0.1, z + 0.5);
 			GlStateManager.rotate((int) getWorld().getTotalWorldTime(), 0, 1, 0);
 			for (ItemStack stack : stacks) {
-				GlStateManager.rotate(rot, 0, 1, 0);
-				if (isSpawning) {
+				GlStateManager.rotate(360f / dist, 0, 1, 0);
+				if (te.isSpawning()) {
 					GlStateManager.translate(0, 0.3f / te.TIME_TO_SPAWN * (te.renderTick + partialTicks), 0);
 				}
 				GlStateManager.pushMatrix();
