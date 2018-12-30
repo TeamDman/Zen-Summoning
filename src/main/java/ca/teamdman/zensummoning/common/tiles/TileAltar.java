@@ -1,6 +1,7 @@
 package ca.teamdman.zensummoning.common.tiles;
 
 import ca.teamdman.zensummoning.SummoningDirector;
+import ca.teamdman.zensummoning.ZenSummoning;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -76,6 +77,7 @@ public class TileAltar extends TileEntity implements ITickable {
 	 * @return True if something was summoned.
 	 */
 	public boolean summonStart(EntityPlayer player, EnumHand hand) {
+		ZenSummoning.log("summonStart");
 		ItemStack                    handStack = player.getHeldItem(hand);
 		SummoningDirector.SummonInfo info      = SummoningDirector.getSummonInfo(handStack);
 		if (info == null)
@@ -114,6 +116,7 @@ public class TileAltar extends TileEntity implements ITickable {
 	 * Spawns the current {@link ca.teamdman.zensummoning.SummoningDirector.SummonInfo} into the world
 	 */
 	private void summonFinish() {
+		ZenSummoning.log("summonFinish");
 		summonCountdown = -1;
 		if (world.isRemote) {
 			summonInfo = null;

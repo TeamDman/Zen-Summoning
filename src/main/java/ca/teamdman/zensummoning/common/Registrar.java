@@ -5,6 +5,7 @@ import ca.teamdman.zensummoning.common.blocks.BlockAltar;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraftforge.event.RegistryEvent;
@@ -24,7 +25,7 @@ public class Registrar {
 
 	@GameRegistry.ObjectHolder(ZenSummoning.MOD_ID)
 	public static class Blocks {
-		public static final BlockAltar ALTAR = null;
+		public static final Block ALTAR = net.minecraft.init.Blocks.AIR;
 	}
 
 	@GameRegistry.ObjectHolder(ZenSummoning.MOD_ID)

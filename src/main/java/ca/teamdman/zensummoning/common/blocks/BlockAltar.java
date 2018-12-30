@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 public class BlockAltar extends Block implements ITileEntityProvider {
 	public BlockAltar() {
 		super(Material.ROCK);
-		setRegistryName(new ResourceLocation(ZenSummoning.MOD_NAME, "altar"));
+		setRegistryName(new ResourceLocation(ZenSummoning.MOD_ID, "altar"));
 		setTranslationKey("altar");
 		setCreativeTab(ZenSummoning.CREATIVE_TAB);
 		setHardness(3);
@@ -60,12 +60,16 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		ZenSummoning.log("Altar onBlockActivated");
 		if (!world.isRemote) {
 			TileEntity tile = world.getTileEntity(pos);
-			if (!(tile instanceof TileAltar))
+			if (!(tile instanceof TileAltar)) {
+				ZenSummoning.log("Altar onBlockActivated tile not altar?");
 				return false;
+			}
 			TileAltar altar = (TileAltar) tile;
 			if (!playerIn.isSneaking()) {
+				ZenSummoning.log("Altar onBlockActivated player not sneaking");
 				if (playerIn.getHeldItem(hand).isEmpty()) {
 					playerIn.setHeldItem(hand, altar.popStack());
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, -0.5f);
@@ -74,10 +78,13 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, 2f);
 				}
 			} else {
+				ZenSummoning.log("Altar onBlockActivated player is sneaking");
 				if (altar.summonStart(playerIn, hand)) {
+					ZenSummoning.log("Altar onBlockActivated summon success");
 					playerIn.sendMessage(new TextComponentTranslation("chat.zensummoning.success"));
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
 				} else {
+					ZenSummoning.log("Altar onBlockActivated summon failure");
 					playerIn.sendMessage(new TextComponentTranslation("chat.zensummoning.failure"));
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);
 				}

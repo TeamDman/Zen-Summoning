@@ -1,5 +1,6 @@
 package ca.teamdman.zensummoning;
 
+import com.google.common.collect.ImmutableSet;
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.data.IData;
 import crafttweaker.api.item.IItemStack;
@@ -23,6 +24,10 @@ public class SummoningDirector {
 		return summonings.stream().filter(s -> s.catalyst.isItemEqual(stack) && s.catalyst.getCount() <= stack.getCount()).findFirst().orElse(null);
 	}
 
+	public static ImmutableSet<SummonInfo> getSummonInfos() {
+		return ImmutableSet.copyOf(summonings);
+	}
+
 	@ZenMethod
 	public static void addSummonInfo(IItemStack catalyst, List<IItemStack> reagents, String mod, String mob, int height, IData data) {
 		summonings.add(
@@ -34,6 +39,12 @@ public class SummoningDirector {
 						data
 				)
 		);
+		ZenSummoning.log("addSummonInfo for " + mod + ":" + mob);
+	}
+
+	@ZenMethod
+	public static void enableDebugging() {
+		ZenSummoning.debug = true;
 	}
 
 	public static class SummonInfo {
