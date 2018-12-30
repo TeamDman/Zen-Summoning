@@ -2,10 +2,7 @@ package ca.teamdman.zensummoning.common.tiles;
 
 import ca.teamdman.zensummoning.SummoningDirector;
 import ca.teamdman.zensummoning.ZenSummoning;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
-import javafx.util.Pair;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -29,10 +26,11 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 
 public class TileAltar extends TileEntity implements ITickable {
+	public final  int                          TIME_TO_SPAWN   = 5 * 20;
 	public final  ItemStackHandler             clientInventory = new ItemStackHandler();
-	public  final int                          TIME_TO_SPAWN   = 5 * 20;
 	private final ItemStackHandler             inventory       = new ItemStackHandler(256) {
 		@Override
 		protected void onContentsChanged(int slot) {
@@ -71,48 +69,6 @@ public class TileAltar extends TileEntity implements ITickable {
 	}
 
 	/**
-	 * Attempts to perform a summon, given a catalyst.
-	 * Called server-only from {@link ca.teamdman.zensummoning.common.blocks.BlockAltar#onBlockActivated(World, BlockPos, IBlockState, EntityPlayer, EnumHand, EnumFacing, float, float, float)}
-	 *
-	 * @return True if something was summoned.
-	 */
-	public boolean summonStart(EntityPlayer player, EnumHand hand) {
-		ZenSummoning.log("summonStart");
-		ItemStack                    handStack = player.getHeldItem(hand);
-		SummoningDirector.SummonInfo info      = SummoningDirector.getSummonInfo(handStack);
-		if (info == null)
-			return false;
-
-		Multimap<ItemStack, Pair<Integer, Integer>> reagentMap = ArrayListMultimap.create();
-		for (ItemStack reagentStack : info.reagents) {
-			int remaining = reagentStack.getCount();
-			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
-				ItemStack slotStack = inventory.getStackInSlot(slot);
-				if (reagentStack.isItemEqual(slotStack)) {
-					reagentMap.put(reagentStack, new Pair<>(slot, Math.min(remaining, slotStack.getCount())));
-					remaining -= slotStack.getCount();
-				}
-			}
-			if (remaining > 0)
-				return false;
-		}
-
-		summonInfo = info;
-		summonCountdown = TIME_TO_SPAWN;
-		renderTick = 0;
-
-		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
-
-
-		reagentMap.values().forEach(x -> inventory.extractItem(x.getKey(), x.getValue(), false));
-		handStack.shrink(info.catalyst.getCount());
-		player.setHeldItem(hand, handStack);
-
-		return true;
-	}
-
-	/**
 	 * Spawns the current {@link ca.teamdman.zensummoning.SummoningDirector.SummonInfo} into the world
 	 */
 	private void summonFinish() {
@@ -136,6 +92,51 @@ public class TileAltar extends TileEntity implements ITickable {
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.EVOCATION_ILLAGER_PREPARE_WOLOLO, SoundCategory.BLOCKS, 0.5f, 1f);
 
+	}
+
+	/**
+	 * Attempts to perform a summon, given a catalyst.
+	 * Called server-only from {@link ca.teamdman.zensummoning.common.blocks.BlockAltar#onBlockActivated(World, BlockPos, IBlockState, EntityPlayer, EnumHand, EnumFacing, float, float, float)}
+	 *
+	 * @return True if something was summoned.
+	 */
+	public boolean summonStart(EntityPlayer player, EnumHand hand) {
+		ZenSummoning.log("summonStart");
+		ItemStack                    handStack = player.getHeldItem(hand);
+		SummoningDirector.SummonInfo info      = SummoningDirector.getSummonInfo(handStack);
+		if (info == null)
+			return false;
+
+		//slot, quantity
+		//lets pretend there's no duplicates
+		HashMap<Integer, Integer> reagentMap = new HashMap<>();
+		for (ItemStack reagentStack : info.reagents) {
+			int remaining = reagentStack.getCount();
+			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
+				ItemStack slotStack = inventory.getStackInSlot(slot);
+				int       count     = slotStack.getCount() - reagentMap.getOrDefault(slot, 0);
+				if (reagentStack.isItemEqual(slotStack) && count > 0) {
+					reagentMap.merge(slot, Math.min(remaining, count), (a, b) -> a + b);
+					remaining -= count;
+				}
+			}
+			if (remaining > 0)
+				return false;
+		}
+
+		summonInfo = info;
+		summonCountdown = TIME_TO_SPAWN;
+		renderTick = 0;
+
+		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
+
+
+		reagentMap.forEach((slot, count) -> inventory.extractItem(slot, count, false));
+		handStack.shrink(info.catalyst.getCount());
+		player.setHeldItem(hand, handStack);
+
+		return true;
 	}
 
 	/**
