@@ -8,7 +8,6 @@ import mezz.jei.api.gui.IGuiItemStackGroup;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeCategory;
-import mezz.jei.config.Constants;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 
@@ -19,8 +18,7 @@ public class AltarCategory implements IRecipeCategory<AltarRecipe> {
 	private final int WIDTH = 160;
 	private final int HEIGHT = 200;
 	public AltarCategory(IGuiHelper guiHelper) {
-//		background = guiHelper.createDrawable(Constants.RECIPE_GUI_VANILLA, 0, 168, 125, 18,0, 20 ,0 ,0);
-		background = guiHelper.createBlankDrawable(160, 200);
+		background = guiHelper.createBlankDrawable(WIDTH, HEIGHT);
 	}
 
 	@Override
@@ -45,19 +43,20 @@ public class AltarCategory implements IRecipeCategory<AltarRecipe> {
 
 	@Override
 	public void setRecipe(IRecipeLayout recipeLayout, AltarRecipe recipeWrapper, IIngredients ingredients) {
-		IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
-		List<List<ItemStack>> inputs = ingredients.getInputs(ItemStack.class);
-		guiItemStacks.init(0, true, WIDTH/2-28, 90);
-		int i = 1;
-		for (; i < inputs.size(); i++) {
-			guiItemStacks.init(i, true, (i-1)%6*20 + 22, 124 + (i-1)/6 * 20);
+		IGuiItemStackGroup    guiItemStacks = recipeLayout.getItemStacks();
+		List<List<ItemStack>> inputs        = ingredients.getInputs(ItemStack.class);
+		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT/2 - 24);
+		int i;
+		final double dist = 25 + inputs.size()*2;
+		final double cut = (Math.PI * 2 / (inputs.size()-1));
+		for (i=0; i < inputs.size()-1; i++) {
+			double x = Math.cos(cut * i)*dist;
+			double y = Math.sin(cut * i)*dist;
+			guiItemStacks.init(i+1, true, WIDTH / 2 - 8 + (int) x, HEIGHT / 2 - 8 + (int) y);
 		}
-
-		guiItemStacks.init(i+1, false, WIDTH/2-8, 64);
 		guiItemStacks.set(ingredients);
-
-		guiItemStacks.init(i+2, false, WIDTH/2-8, 90);
-		guiItemStacks.set(i+2, new ItemStack(Registrar.Blocks.ALTAR));
+		guiItemStacks.init(++i, false, WIDTH / 2 - 8, HEIGHT/2 - 8);
+		guiItemStacks.set(i, new ItemStack(Registrar.Blocks.ALTAR));
 
 	}
 }

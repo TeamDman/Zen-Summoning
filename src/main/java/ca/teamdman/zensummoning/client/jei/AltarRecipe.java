@@ -5,9 +5,9 @@ import com.google.common.collect.Lists;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 
 import java.awt.*;
 
@@ -20,13 +20,11 @@ public class AltarRecipe implements IRecipeWrapper {
 
 	@Override
 	public void getIngredients(IIngredients ingredients) {
+//		summonInfo.catalyst.getTooltip();
+		NBTTagList lore = new NBTTagList();
+		lore.appendTag(new NBTTagString("Shift-rightclick with the catalyst once all items are in the altar to begin"));
+		summonInfo.catalyst.getOrCreateSubCompound("display").setTag("Lore", lore);
 		ingredients.setInputs(ItemStack.class, Lists.asList(summonInfo.catalyst, summonInfo.reagents.toArray(new ItemStack[0])));
-		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setTag("display", new NBTTagCompound());
-		nbt.getCompoundTag("display").setString("Name", "Summon " + summonInfo.mob.getPath());
-		ItemStack egg = new ItemStack(Items.SPAWN_EGG);
-		egg.setTagCompound(nbt);
-		ingredients.setOutput(ItemStack.class, egg);
 	}
 
 	@Override
