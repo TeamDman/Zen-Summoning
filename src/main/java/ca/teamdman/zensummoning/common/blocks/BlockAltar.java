@@ -15,13 +15,17 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
 public class BlockAltar extends Block implements ITileEntityProvider {
+	private final AxisAlignedBB bb = new AxisAlignedBB(0.0625D, 0.0D, 0.0625D, 0.9375D, 0.0625D, 0.9375D);
+
 	public BlockAltar() {
 		super(Material.ROCK);
 		setRegistryName(new ResourceLocation(ZenSummoning.MOD_ID, "altar"));
@@ -36,12 +40,32 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 		return new TileAltar();
 	}
 
+	@Override
+	public boolean isFullBlock(IBlockState state) {
+		return false;
+	}
+
+	@Override
+	public boolean isFullCube(IBlockState state) {
+		return false;
+	}
+
+	@Override
+	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+		return bb;
+	}
+
+	@Nullable
+	@Override
+	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+		return NULL_AABB;
+	}
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean isOpaqueCube(IBlockState state) {
 		return false;
 	}
-
 
 	@Override
 	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
@@ -79,17 +103,18 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 				}
 			} else {
 				ZenSummoning.log("Altar onBlockActivated player is sneaking");
-				if (altar.summonStart(playerIn, hand)) {
-					ZenSummoning.log("Altar onBlockActivated summon success");
-					playerIn.sendMessage(new TextComponentTranslation("chat.zensummoning.success"));
+				TileAltar.SummonResult result = altar.summonStart(playerIn, hand);
+				ZenSummoning.log("Altar onBlockActivated summon " + result.name());
+				playerIn.sendMessage(new TextComponentTranslation(result.text));
+				if (result.happy) {
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
 				} else {
-					ZenSummoning.log("Altar onBlockActivated summon failure");
-					playerIn.sendMessage(new TextComponentTranslation("chat.zensummoning.failure"));
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);
 				}
+
 			}
 		}
 		return true;
 	}
+
 }

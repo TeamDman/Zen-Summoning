@@ -24,7 +24,7 @@ public class TESRAltar extends TileEntitySpecialRenderer<TileAltar> {
 			for (ItemStack stack : stacks) {
 				GlStateManager.rotate(360f / dist, 0, 1, 0);
 				if (te.isSpawning()) {
-					GlStateManager.translate(0, 0.3f / te.TIME_TO_SPAWN * (te.renderTick + partialTicks), 0);
+					GlStateManager.translate(0, 1.2 * (1-scale), 0);
 				}
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(1 + dist / 15f, 0, 0);

@@ -94,18 +94,36 @@ public class TileAltar extends TileEntity implements ITickable {
 
 	}
 
+	public enum SummonResult {
+		UNSATISFIED("chat.zensummoning.unsatisfied", false),
+		BUSY("chat.zensummoning.busy", false),
+		NOMATCH("chat.zensummoning.nomatch", false),
+		SUCCESS("chat.zensummoning.success", true);
+
+		public final String text;
+		public final boolean happy;
+
+		SummonResult(String text, boolean happy) {
+			this.text = text;
+			this.happy = happy;
+		}
+	}
+
 	/**
 	 * Attempts to perform a summon, given a catalyst.
 	 * Called server-only from {@link ca.teamdman.zensummoning.common.blocks.BlockAltar#onBlockActivated(World, BlockPos, IBlockState, EntityPlayer, EnumHand, EnumFacing, float, float, float)}
 	 *
 	 * @return True if something was summoned.
 	 */
-	public boolean summonStart(EntityPlayer player, EnumHand hand) {
+	public SummonResult summonStart(EntityPlayer player, EnumHand hand) {
 		ZenSummoning.log("summonStart");
+		if (isSpawning())
+			return SummonResult.BUSY;
+
 		ItemStack                    handStack = player.getHeldItem(hand);
 		SummoningDirector.SummonInfo info      = SummoningDirector.getSummonInfo(handStack);
 		if (info == null)
-			return false;
+			return SummonResult.NOMATCH;
 
 		//slot, quantity
 		//lets pretend there's no duplicates
@@ -121,7 +139,7 @@ public class TileAltar extends TileEntity implements ITickable {
 				}
 			}
 			if (remaining > 0)
-				return false;
+				return SummonResult.UNSATISFIED;
 		}
 
 		summonInfo = info;
@@ -136,7 +154,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		handStack.shrink(info.catalyst.getCount());
 		player.setHeldItem(hand, handStack);
 
-		return true;
+		return SummonResult.SUCCESS;
 	}
 
 	/**
