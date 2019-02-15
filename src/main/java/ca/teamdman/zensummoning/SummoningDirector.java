@@ -18,6 +18,12 @@ import java.util.stream.Collectors;
 @ZenRegister
 @ZenClass("mods.zensummoning.SummoningDirector")
 public class SummoningDirector {
+	private static int stackLimit = 0;
+
+	public static int getStackLimit() {
+		return stackLimit;
+	}
+
 	private static final List<SummonInfo> summonings = new ArrayList<>();
 
 	public static SummonInfo getSummonInfo(ItemStack stack) {
@@ -39,6 +45,7 @@ public class SummoningDirector {
 						data
 				)
 		);
+		stackLimit = Math.max(reagents.stream().mapToInt(r -> r.getAmount() != -1 ? Math.max(r.getAmount(), r.getMaxStackSize()) / r.getMaxStackSize() : 0).sum(), stackLimit);
 		ZenSummoning.log("addSummonInfo for " + mod + ":" + mob);
 	}
 

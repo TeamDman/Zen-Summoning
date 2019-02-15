@@ -30,8 +30,8 @@ import java.util.HashMap;
 
 public class TileAltar extends TileEntity implements ITickable {
 	public final  int                          TIME_TO_SPAWN   = 5 * 20;
-	public final  ItemStackHandler             clientInventory = new ItemStackHandler();
-	private final ItemStackHandler             inventory       = new ItemStackHandler(256) {
+	private final ItemStackHandler             clientInventory = new ItemStackHandler();
+	private final ItemStackHandler             inventory       = new ItemStackHandler(SummoningDirector.getStackLimit()) {
 		@Override
 		protected void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
@@ -40,7 +40,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		}
 	};
 	public        int                          renderTick      = -1;
-	public        int                          summonCountdown = -1;
+	private       int                          summonCountdown = -1;
 	private       SummoningDirector.SummonInfo summonInfo;
 
 	@Override
