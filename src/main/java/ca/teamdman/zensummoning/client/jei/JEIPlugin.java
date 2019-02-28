@@ -2,6 +2,7 @@ package ca.teamdman.zensummoning.client.jei;
 
 
 import ca.teamdman.zensummoning.SummoningDirector;
+import ca.teamdman.zensummoning.SummoningInfo;
 import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.Registrar;
 import mezz.jei.api.IModPlugin;
@@ -20,7 +21,7 @@ public class JEIPlugin implements IModPlugin {
 	@Override
 	public void register(IModRegistry registry) {
 		registry.addRecipes(SummoningDirector.getSummonInfos(), ZenSummoning.JEI_CATEGORY);
-		registry.handleRecipes(SummoningDirector.SummonInfo.class, AltarRecipe::new, ZenSummoning.JEI_CATEGORY);
+		registry.handleRecipes(SummoningInfo.class, AltarRecipe::new, ZenSummoning.JEI_CATEGORY);
 		registry.addRecipeCatalyst(new ItemStack(Registrar.Blocks.ALTAR), ZenSummoning.JEI_CATEGORY);
 	}
 }

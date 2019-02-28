@@ -1,8 +1,11 @@
 package ca.teamdman.zensummoning.common.tiles;
 
+import ca.teamdman.zensummoning.SummoningAttempt;
 import ca.teamdman.zensummoning.SummoningDirector;
+import ca.teamdman.zensummoning.SummoningInfo;
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.google.common.collect.ImmutableList;
+import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -30,8 +33,8 @@ import java.util.HashMap;
 
 public class TileAltar extends TileEntity implements ITickable {
 	public final  int                          TIME_TO_SPAWN   = 5 * 20;
-	private final ItemStackHandler             clientInventory = new ItemStackHandler();
-	private final ItemStackHandler             inventory       = new ItemStackHandler(SummoningDirector.getStackLimit()) {
+	private final ItemStackHandler clientInventory = new ItemStackHandler();
+	private final ItemStackHandler inventory       = new ItemStackHandler(SummoningDirector.getStackLimit()) {
 		@Override
 		protected void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
@@ -39,9 +42,9 @@ public class TileAltar extends TileEntity implements ITickable {
 			markDirty();
 		}
 	};
-	public        int                          renderTick      = -1;
-	private       int                          summonCountdown = -1;
-	private       SummoningDirector.SummonInfo summonInfo;
+	public        int              renderTick      = -1;
+	private       int              summonCountdown = -1;
+	private       SummoningInfo    summonInfo;
 
 	@Override
 	public void update() {
@@ -69,7 +72,7 @@ public class TileAltar extends TileEntity implements ITickable {
 	}
 
 	/**
-	 * Spawns the current {@link ca.teamdman.zensummoning.SummoningDirector.SummonInfo} into the world
+	 * Spawns the current {@link SummoningInfo} into the world
 	 */
 	private void summonFinish() {
 		ZenSummoning.log("summonFinish");
@@ -94,36 +97,28 @@ public class TileAltar extends TileEntity implements ITickable {
 
 	}
 
-	public enum SummonResult {
-		UNSATISFIED("chat.zensummoning.unsatisfied", false),
-		BUSY("chat.zensummoning.busy", false),
-		NOMATCH("chat.zensummoning.nomatch", false),
-		SUCCESS("chat.zensummoning.success", true);
-
-		public final String text;
-		public final boolean happy;
-
-		SummonResult(String text, boolean happy) {
-			this.text = text;
-			this.happy = happy;
-		}
-	}
-
 	/**
 	 * Attempts to perform a summon, given a catalyst.
 	 * Called server-only from {@link ca.teamdman.zensummoning.common.blocks.BlockAltar#onBlockActivated(World, BlockPos, IBlockState, EntityPlayer, EnumHand, EnumFacing, float, float, float)}
 	 *
 	 * @return True if something was summoned.
 	 */
-	public SummonResult summonStart(EntityPlayer player, EnumHand hand) {
+	public SummoningAttempt summonStart(EntityPlayer player, EnumHand hand) {
 		ZenSummoning.log("summonStart");
-		if (isSpawning())
-			return SummonResult.BUSY;
+		SummoningAttempt attempt = new SummoningAttempt(CraftTweakerMC.getIWorld(this.world), CraftTweakerMC.getIBlockPos(this.pos));
+		if (isSpawning()) {
+			attempt.setSuccess(false);
+			attempt.setMessage("chat.zensummoning.busy");
+			return attempt;
+		}
 
-		ItemStack                    handStack = player.getHeldItem(hand);
-		SummoningDirector.SummonInfo info      = SummoningDirector.getSummonInfo(handStack);
-		if (info == null)
-			return SummonResult.NOMATCH;
+		ItemStack     handStack = player.getHeldItem(hand);
+		SummoningInfo info      = SummoningDirector.getSummonInfo(handStack);
+		if (info == null) {
+			attempt.setSuccess(false);
+			attempt.setMessage("chat.zensummoning.no_match");
+			return attempt;
+		}
 
 		//slot, quantity
 		//lets pretend there's no duplicates
@@ -138,23 +133,32 @@ public class TileAltar extends TileEntity implements ITickable {
 					remaining -= count;
 				}
 			}
-			if (remaining > 0)
-				return SummonResult.UNSATISFIED;
+			if (remaining > 0) {
+				attempt.setSuccess(false);
+				attempt.setMessage("chat.zensummoning.unsatisfied");
+				return attempt;
+			}
 		}
 
-		summonInfo = info;
-		summonCountdown = TIME_TO_SPAWN;
-		renderTick = 0;
+		SummoningDirector.mutators.getOrDefault(info, (__) -> {
+		}).accept(attempt);
+		if (!attempt.isSuccess()) {
+			return attempt;
+		} else {
+			this.summonInfo = info;
+			this.summonCountdown = TIME_TO_SPAWN;
+			this.renderTick = 0;
 
-		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
+			world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+			world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
 
 
-		reagentMap.forEach((slot, count) -> inventory.extractItem(slot, count, false));
-		handStack.shrink(info.catalyst.getCount());
-		player.setHeldItem(hand, handStack);
+			reagentMap.forEach((slot, count) -> inventory.extractItem(slot, count, false));
+			handStack.shrink(info.catalyst.getCount());
+			player.setHeldItem(hand, handStack);
 
-		return SummonResult.SUCCESS;
+			return attempt;
+		}
 	}
 
 	/**
@@ -220,7 +224,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		renderTick = compound.getInteger("renderTick");
 		summonCountdown = compound.getInteger("summonCountdown");
 		if (compound.hasKey("summonInfo"))
-			summonInfo = new SummoningDirector.SummonInfo(compound.getCompoundTag("summonInfo"));
+			summonInfo = new SummoningInfo(compound.getCompoundTag("summonInfo"));
 		else if (!isSpawning()) // keep inventory desync'd so render can animate the reagents
 			clientInventory.deserializeNBT(compound.getCompoundTag("inventory"));
 

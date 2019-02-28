@@ -1,5 +1,6 @@
 package ca.teamdman.zensummoning.common.blocks;
 
+import ca.teamdman.zensummoning.SummoningAttempt;
 import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.block.Block;
@@ -103,10 +104,10 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 				}
 			} else {
 				ZenSummoning.log("Altar onBlockActivated player is sneaking");
-				TileAltar.SummonResult result = altar.summonStart(playerIn, hand);
-				ZenSummoning.log("Altar onBlockActivated summon " + result.name());
-				playerIn.sendMessage(new TextComponentTranslation(result.text));
-				if (result.happy) {
+				SummoningAttempt result = altar.summonStart(playerIn, hand);
+				ZenSummoning.log("Altar onBlockActivated summon " + result.getMessage());
+				playerIn.sendMessage(new TextComponentTranslation(result.getMessage()));
+				if (result.isSuccess()) {
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
 				} else {
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);

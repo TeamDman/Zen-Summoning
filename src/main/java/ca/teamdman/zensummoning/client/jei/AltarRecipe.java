@@ -1,6 +1,6 @@
 package ca.teamdman.zensummoning.client.jei;
 
-import ca.teamdman.zensummoning.SummoningDirector;
+import ca.teamdman.zensummoning.SummoningInfo;
 import com.google.common.collect.Lists;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
@@ -12,9 +12,9 @@ import net.minecraft.nbt.NBTTagString;
 import java.awt.*;
 
 public class AltarRecipe implements IRecipeWrapper {
-	private SummoningDirector.SummonInfo summonInfo;
+	private SummoningInfo summonInfo;
 
-	public AltarRecipe(SummoningDirector.SummonInfo summonInfo) {
+	public AltarRecipe(SummoningInfo summonInfo) {
 		this.summonInfo = summonInfo;
 	}
 
