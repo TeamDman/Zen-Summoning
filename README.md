@@ -54,6 +54,12 @@ NBTTagCompound NBTData ({} for none)
 Consumer<SummoningAttemot>
 ```
 
+The `SummoningAttempt` object has to properties, `boolean success` and `String message`.
+
+Setting `success=false` will cancel an otherwise valid summoning attempt.
+
+Setting the `message` property will set the string to be displayed to the user when their attempt either succeeds or fails.
+
 [Example video](https://streamable.com/hflui)
 
 [Another](https://streamable.com/snlbk)
