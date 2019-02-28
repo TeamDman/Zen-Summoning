@@ -5,7 +5,6 @@ import ca.teamdman.zensummoning.common.blocks.BlockAltar;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraftforge.event.RegistryEvent;
@@ -16,8 +15,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import java.util.Objects;
 
 public class Registrar {
-	public static final Multimap<EntryType, Block> blocks = ArrayListMultimap.create();
-	public static final Multimap<EntryType, Item>  items  = ArrayListMultimap.create();
+	private static final Multimap<EntryType, Block> blocks = ArrayListMultimap.create();
+	public static final  Multimap<EntryType, Item>  items  = ArrayListMultimap.create();
 	public enum EntryType {
 		NEEDS_DEFAULT_ITEMBLOCK,
 		DEFAULT
@@ -28,16 +27,8 @@ public class Registrar {
 		public static final Block ALTAR = net.minecraft.init.Blocks.AIR;
 	}
 
-	@GameRegistry.ObjectHolder(ZenSummoning.MOD_ID)
-	public static class Items {
-      /*
-          public static final ItemBlock mySpecialBlock = null; // itemblock for the block above
-          public static final MySpecialItem mySpecialItem = null; // placeholder for special item below
-      */
-	}
-
 	@Mod.EventBusSubscriber(modid = ZenSummoning.MOD_ID)
-	public static class ObjectRegistryHandler {
+	private static class ObjectRegistryHandler {
 		@SubscribeEvent
 		public static void addItems(RegistryEvent.Register<Item> event) {
            /*

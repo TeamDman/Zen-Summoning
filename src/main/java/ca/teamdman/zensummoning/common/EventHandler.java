@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @Mod.EventBusSubscriber
-public class EventHandler {
+class EventHandler {
 	@SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
 	public static void onBlockRightClicked(PlayerInteractEvent.RightClickBlock event) {
 		if (event.getWorld().getBlockState(event.getPos()).getBlock() == Registrar.Blocks.ALTAR) {

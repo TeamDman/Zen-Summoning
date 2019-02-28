@@ -11,8 +11,8 @@ import net.minecraft.nbt.NBTTagString;
 
 import java.awt.*;
 
-public class AltarRecipe implements IRecipeWrapper {
-	private SummoningInfo summonInfo;
+class AltarRecipe implements IRecipeWrapper {
+	private final SummoningInfo summonInfo;
 
 	public AltarRecipe(SummoningInfo summonInfo) {
 		this.summonInfo = summonInfo;

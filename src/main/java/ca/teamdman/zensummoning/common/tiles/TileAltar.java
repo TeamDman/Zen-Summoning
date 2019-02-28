@@ -140,7 +140,7 @@ public class TileAltar extends TileEntity implements ITickable {
 			}
 		}
 
-		SummoningDirector.mutators.getOrDefault(info, (__) -> {
+		SummoningDirector.getMutators().getOrDefault(info, (__) -> {
 		}).accept(attempt);
 		if (!attempt.isSuccess()) {
 			return attempt;

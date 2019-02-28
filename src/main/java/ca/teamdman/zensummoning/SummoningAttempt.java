@@ -10,10 +10,10 @@ import stanhebben.zenscript.annotations.ZenSetter;
 @ZenRegister
 @ZenClass("mods.zensummoning.SummoningAttempt")
 public class SummoningAttempt {
-	String    message = "chat.zensummoning.success";
-	IBlockPos pos;
-	boolean   success = true;
-	IWorld    world;
+	private       String    message = "chat.zensummoning.success";
+	private final IBlockPos pos;
+	private       boolean   success = true;
+	private final IWorld    world;
 
 	public SummoningAttempt(IWorld world, IBlockPos pos) {
 		this.world = world;

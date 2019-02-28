@@ -1,7 +1,6 @@
 package ca.teamdman.zensummoning;
 
 import ca.teamdman.zensummoning.common.Mutator;
-import com.google.common.collect.ImmutableSet;
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.data.IData;
 import crafttweaker.api.item.IItemStack;
@@ -12,16 +11,15 @@ import net.minecraft.util.ResourceLocation;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("WeakerAccess")
 @ZenRegister
 @ZenClass("mods.zensummoning.SummoningDirector")
 public class SummoningDirector {
-	private static final List<SummoningInfo>                               summonings = new ArrayList<>();
-	public static        HashMap<SummoningInfo, Mutator<SummoningAttempt>> mutators;
+	private static final HashMap<SummoningInfo, Mutator<SummoningAttempt>> mutators   = new HashMap<>();
+	private static final Set<SummoningInfo>                                summonings = new HashSet<>();
 	private static       int                                               stackLimit = 0;
 
 	public static int getStackLimit() {
@@ -32,8 +30,12 @@ public class SummoningDirector {
 		return summonings.stream().filter(s -> s.catalyst.isItemEqual(stack) && s.catalyst.getCount() <= stack.getCount()).findFirst().orElse(null);
 	}
 
-	public static ImmutableSet<SummoningInfo> getSummonInfos() {
-		return ImmutableSet.copyOf(summonings);
+	public static Set<SummoningInfo> getSummonInfos() {
+		return Collections.unmodifiableSet(summonings);
+	}
+
+	public static Map<SummoningInfo, Mutator<SummoningAttempt>> getMutators() {
+		return Collections.unmodifiableMap(mutators);
 	}
 
 	@ZenMethod

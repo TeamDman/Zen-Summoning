@@ -7,11 +7,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
+@SuppressWarnings("WeakerAccess")
 @Mod(modid = ZenSummoning.MOD_ID, name = ZenSummoning.MOD_NAME, version = ZenSummoning.VERSION, dependencies = "required-after:crafttweaker")
 public class ZenSummoning {
 
@@ -48,19 +48,4 @@ public class ZenSummoning {
 		GameRegistry.registerTileEntity(TileAltar.class, new ResourceLocation(MOD_ID, "altar"));
 	}
 
-	/**
-	 * This is the second initialization event. Register custom recipes
-	 */
-	@Mod.EventHandler
-	public void init(FMLInitializationEvent event) {
-
-	}
-
-	/**
-	 * This is the final initialization event. Register actions from other mods here
-	 */
-	@Mod.EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
-
-	}
 }

@@ -35,28 +35,30 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 		setHardness(3);
 	}
 
-	@Nullable
 	@Override
 	public TileEntity createNewTileEntity(World worldIn, int meta) {
 		return new TileAltar();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean isFullBlock(IBlockState state) {
 		return false;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean isFullCube(IBlockState state) {
 		return false;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
 		return bb;
 	}
 
-	@Nullable
+	@SuppressWarnings("deprecation")
 	@Override
 	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
 		return NULL_AABB;

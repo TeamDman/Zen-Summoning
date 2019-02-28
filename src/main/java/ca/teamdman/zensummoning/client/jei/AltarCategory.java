@@ -13,7 +13,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.List;
 
-public class AltarCategory implements IRecipeCategory<AltarRecipe> {
+class AltarCategory implements IRecipeCategory<AltarRecipe> {
 	private final IDrawable background;
 	private final int WIDTH = 160;
 	private final int HEIGHT = 200;
