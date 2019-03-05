@@ -12,7 +12,7 @@ import stanhebben.zenscript.annotations.ZenMethod;
 @ZenClass(ZenSummoning.ZEN_PACKAGE + ".MobInfo")
 @ZenRegister
 public class MobInfo {
-	private int              count  = 0;
+	private int              count  = 1;
 	private NBTTagCompound   data   = new NBTTagCompound();
 	private ResourceLocation mob    = new ResourceLocation("");
 	private BlockPos         offset = new BlockPos(0.5, 0, 0.5);
