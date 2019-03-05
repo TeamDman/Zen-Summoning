@@ -8,7 +8,7 @@ import stanhebben.zenscript.annotations.ZenGetter;
 import stanhebben.zenscript.annotations.ZenSetter;
 
 @ZenRegister
-@ZenClass("mods.zensummoning.SummoningAttempt")
+@ZenClass(ZenSummoning.ZEN_PACKAGE + ".SummoningAttempt")
 public class SummoningAttempt {
 	private       String    message = "chat.zensummoning.success";
 	private final IBlockPos pos;

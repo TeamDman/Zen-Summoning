@@ -1,9 +1,6 @@
 package ca.teamdman.zensummoning.common.tiles;
 
-import ca.teamdman.zensummoning.SummoningAttempt;
-import ca.teamdman.zensummoning.SummoningDirector;
-import ca.teamdman.zensummoning.SummoningInfo;
-import ca.teamdman.zensummoning.ZenSummoning;
+import ca.teamdman.zensummoning.*;
 import com.google.common.collect.ImmutableList;
 import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.block.state.IBlockState;
@@ -32,7 +29,7 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 
 public class TileAltar extends TileEntity implements ITickable {
-	public final  int                          TIME_TO_SPAWN   = 5 * 20;
+	public final  int              TIME_TO_SPAWN   = 5 * 20;
 	private final ItemStackHandler clientInventory = new ItemStackHandler();
 	private final ItemStackHandler inventory       = new ItemStackHandler(SummoningDirector.getStackLimit()) {
 		@Override
@@ -82,14 +79,22 @@ public class TileAltar extends TileEntity implements ITickable {
 			return;
 		}
 
-		Entity mob = EntityList.createEntityByIDFromName(summonInfo.mob, world);
-		if (mob == null) {
-			return;
+		for (MobInfo mobInfo : summonInfo.getMobs()) {
+			for (int i=0; i<mobInfo.getCount(); i++) {
+				Entity mob = EntityList.createEntityByIDFromName(mobInfo.getMob(), world);
+				if (mob == null) {
+					return;
+				}
+				mob.readFromNBT(mobInfo.getData());
+				mob.setPosition(
+						getPos().getX() + mobInfo.getOffset().getX() + world.rand.nextInt(mobInfo.getSpread().getX()*2)-mobInfo.getSpread().getX(),
+						getPos().getY() + mobInfo.getOffset().getY() + world.rand.nextInt(mobInfo.getSpread().getY()*2)-mobInfo.getSpread().getY(),
+						getPos().getZ() + mobInfo.getOffset().getZ() + world.rand.nextInt(mobInfo.getSpread().getZ()*2)-mobInfo.getSpread().getZ()
+				);
+				world.spawnEntity(mob);
+			}
 		}
 
-		mob.readFromNBT(summonInfo.data);
-		mob.setPosition(pos.getX() + 0.5, pos.getY() + 1 + summonInfo.height, pos.getZ() + 0.5);
-		world.spawnEntity(mob);
 		summonInfo = null;
 
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
@@ -123,7 +128,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		//slot, quantity
 		//lets pretend there's no duplicates
 		HashMap<Integer, Integer> reagentMap = new HashMap<>();
-		for (ItemStack reagentStack : info.reagents) {
+		for (ItemStack reagentStack : info.getReagents()) {
 			int remaining = reagentStack.getCount();
 			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
 				ItemStack slotStack = inventory.getStackInSlot(slot);
@@ -140,8 +145,7 @@ public class TileAltar extends TileEntity implements ITickable {
 			}
 		}
 
-		SummoningDirector.getMutators().getOrDefault(info, (__) -> {
-		}).accept(attempt);
+		info.getMutator().accept(attempt);
 		if (!attempt.isSuccess()) {
 			return attempt;
 		} else {
@@ -154,7 +158,7 @@ public class TileAltar extends TileEntity implements ITickable {
 
 
 			reagentMap.forEach((slot, count) -> inventory.extractItem(slot, count, false));
-			handStack.shrink(info.catalyst.getCount());
+			handStack.shrink(info.getCatalyst().getCount());
 			player.setHeldItem(hand, handStack);
 
 			return attempt;
@@ -224,7 +228,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		renderTick = compound.getInteger("renderTick");
 		summonCountdown = compound.getInteger("summonCountdown");
 		if (compound.hasKey("summonInfo"))
-			summonInfo = new SummoningInfo(compound.getCompoundTag("summonInfo"));
+			summonInfo = SummoningInfo.fromNBT(compound.getCompoundTag("summonInfo"));
 		else if (!isSpawning()) // keep inventory desync'd so render can animate the reagents
 			clientInventory.deserializeNBT(compound.getCompoundTag("inventory"));
 

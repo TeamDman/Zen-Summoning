@@ -18,6 +18,7 @@ public class ZenSummoning {
 	public static final String       CLIENT_PROXY = "ca.teamdman.zensummoning.client.ClientProxy";
 	public static final String       COMMON_PROXY = "ca.teamdman.zensummoning.common.CommonProxy";
 	public static final String       MOD_ID       = "zensummoning";
+	public static final String 		 ZEN_PACKAGE  = "mods." + MOD_ID;
 	public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(MOD_ID) {
 		@Override
 		public ItemStack createIcon() {
