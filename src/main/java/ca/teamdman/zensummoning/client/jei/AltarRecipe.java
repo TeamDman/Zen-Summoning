@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityList;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -32,6 +33,6 @@ class AltarRecipe implements IRecipeWrapper {
 	public void drawInfo(Minecraft minecraft, int recipeWidth, int recipeHeight, int mouseX, int mouseY) {
 		int i=0;
 		for (MobInfo mob : summonInfo.getMobs())
-			minecraft.fontRenderer.drawString(mob.getCount() + "x" + mob.getMob().getPath(), 0, 40 + 7*i++, Color.GRAY.getRGB());
+			minecraft.fontRenderer.drawString(mob.getCount() + "x" + EntityList.getTranslationName(mob.getMob()), 0, 40 + 7*i++, Color.GRAY.getRGB());
 	}
 }
