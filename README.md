@@ -1,4 +1,4 @@
-# ZenSummoning
+# ZenSummoning [![](http://cf.way2muchnoise.eu/full_zen-summoning_downloads.svg)](https://minecraft.curseforge.com/projects/zen-summoning)
 A mod that allows for pack creators to set up custom summoning situations using ZenScript
 
 ## Example Script

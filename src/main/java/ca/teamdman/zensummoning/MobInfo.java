@@ -79,7 +79,9 @@ public class MobInfo {
 
 	@ZenMethod
 	public MobInfo setSpread(int x, int y, int z) {
-		this.spread = new BlockPos(x, y, z);
+		if (x < 0 || y < 0 || z < 0)
+			System.out.println("Spread operates as a distance factor on each x,y,z plane, distances shouldn't be negative.");
+		this.spread = new BlockPos(Math.abs(x), Math.abs(y), Math.abs(z));
 		return this;
 	}
 }
