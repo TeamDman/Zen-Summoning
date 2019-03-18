@@ -1,7 +1,7 @@
 [
   {
     "modid": "zensummoning",
-    "name": "ZenSummoning",
+    "name": "Zen Summoning",
     "description": "Allows pack makers to set up custom summoning scenarios",
     "version": "${version}",
     "mcversion": "${mcversion}",

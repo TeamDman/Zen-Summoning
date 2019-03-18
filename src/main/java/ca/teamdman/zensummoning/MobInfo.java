@@ -3,11 +3,16 @@ package ca.teamdman.zensummoning;
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.data.IData;
 import crafttweaker.mc1120.data.NBTConverter;
+import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.common.registry.EntityEntry;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
+
+import java.util.Random;
 
 @ZenClass(ZenSummoning.ZEN_PACKAGE + ".MobInfo")
 @ZenRegister
@@ -26,6 +31,17 @@ public class MobInfo {
 		this.mob = mob;
 		this.offset = offset;
 		this.spread = spread;
+	}
+
+	private void validateEgg() {
+		if (!EntityList.ENTITY_EGGS.containsKey(mob)) {
+			Random                   r     = new Random(mob.hashCode());
+			EntityList.EntityEggInfo egg   = new EntityList.EntityEggInfo(mob, r.nextInt(0xFFFFFF), r.nextInt(0xFFFFFF));
+			EntityEntry              entry = ForgeRegistries.ENTITIES.getValue(mob);
+			if (entry != null)
+				entry.setEgg(egg);
+			EntityList.ENTITY_EGGS.put(mob, egg);
+		}
 	}
 
 	@ZenMethod
@@ -64,6 +80,7 @@ public class MobInfo {
 	@ZenMethod
 	public MobInfo setMob(String mob) {
 		this.mob = new ResourceLocation(mob);
+		validateEgg();
 		return this;
 	}
 

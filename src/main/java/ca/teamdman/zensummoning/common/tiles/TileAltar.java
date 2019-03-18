@@ -80,16 +80,16 @@ public class TileAltar extends TileEntity implements ITickable {
 		}
 
 		for (MobInfo mobInfo : summonInfo.getMobs()) {
-			for (int i=0; i<mobInfo.getCount(); i++) {
+			for (int i = 0; i < mobInfo.getCount(); i++) {
 				Entity mob = EntityList.createEntityByIDFromName(mobInfo.getMob(), world);
 				if (mob == null) {
 					return;
 				}
 				mob.readFromNBT(mobInfo.getData());
 				mob.setPosition(
-						getPos().getX() + mobInfo.getOffset().getX() + world.rand.nextInt(mobInfo.getSpread().getX()*2)-mobInfo.getSpread().getX(),
-						getPos().getY() + mobInfo.getOffset().getY() + world.rand.nextInt(mobInfo.getSpread().getY()*2)-mobInfo.getSpread().getY(),
-						getPos().getZ() + mobInfo.getOffset().getZ() + world.rand.nextInt(mobInfo.getSpread().getZ()*2)-mobInfo.getSpread().getZ()
+						getPos().getX() + mobInfo.getOffset().getX() + world.rand.nextInt(Math.abs(mobInfo.getSpread().getX() * 2)) - Math.abs(mobInfo.getSpread().getX()),
+						getPos().getY() + mobInfo.getOffset().getY() + world.rand.nextInt(Math.abs(mobInfo.getSpread().getY() * 2)) - Math.abs(mobInfo.getSpread().getY()),
+						getPos().getZ() + mobInfo.getOffset().getZ() + world.rand.nextInt(Math.abs(mobInfo.getSpread().getZ() * 2)) - Math.abs(mobInfo.getSpread().getZ())
 				);
 				world.spawnEntity(mob);
 			}
