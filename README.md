@@ -50,7 +50,14 @@ SummoningDirector.addSummonInfo(
 ```
 The second example gives a minimum-setup use case
 
-The `SummoningAttempt` object has to properties, `boolean success` and `String message`.
+The `SummoningAttempt` object has four properties:
+
+```java
+boolean success;
+String message;
+World world;
+BlockPos pos;
+```
 
 Setting `success=false` will cancel an otherwise valid summoning attempt.
 
