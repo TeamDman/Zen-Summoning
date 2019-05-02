@@ -21,9 +21,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-
-import javax.annotation.Nullable;
-
+//todo: https://discordapp.com/channels/176780432371744769/179315645005955072/564327293057630228
+// don't impl ITileEntityProvider
 public class BlockAltar extends Block implements ITileEntityProvider {
 	private final AxisAlignedBB bb = new AxisAlignedBB(0.0625D, 0.0D, 0.0625D, 0.9375D, 0.0625D, 0.9375D);
 
