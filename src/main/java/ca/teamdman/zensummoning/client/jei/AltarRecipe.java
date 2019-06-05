@@ -47,6 +47,6 @@ class AltarRecipe implements IRecipeWrapper {
 	public void drawInfo(Minecraft minecraft, int recipeWidth, int recipeHeight, int mouseX, int mouseY) {
 		int i=0;
 		for (MobInfo mob : summonInfo.getMobs())
-			minecraft.fontRenderer.drawString(I18n.format("jei.zensummoning.recipe.altar.entity",mob.getCount(),EntityList.getTranslationName(mob.getMob())), 0, 40 + 7*i++, Color.GRAY.getRGB());
+			minecraft.fontRenderer.drawString(I18n.format("jei.zensummoning.recipe.altar.entity",mob.getCount(), I18n.format("entity." + EntityList.getTranslationName(mob.getMob()) + ".name")), 0, 40 + 7*i++, Color.GRAY.getRGB());
 	}
 }
