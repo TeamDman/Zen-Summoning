@@ -29,7 +29,7 @@ class AltarRecipe implements IRecipeWrapper {
 	public void getIngredients(IIngredients ingredients) {
 //		summonInfo.catalyst.getTooltip();
 		NBTTagList lore = new NBTTagList();
-		lore.appendTag(new NBTTagString("Shift-rightclick with the catalyst once all items are in the altar to begin"));
+		lore.appendTag(new NBTTagString(I18n.format("jei.zensummoning.catalyst.lore")));
 		summonInfo.getCatalyst().getOrCreateSubCompound("display").setTag("Lore", lore);
 
 		List<ItemStack> eggs = summonInfo.getMobs().stream()
