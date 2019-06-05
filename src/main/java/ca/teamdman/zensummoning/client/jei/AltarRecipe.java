@@ -29,7 +29,7 @@ class AltarRecipe implements IRecipeWrapper {
 	public void getIngredients(IIngredients ingredients) {
 //		summonInfo.catalyst.getTooltip();
 		NBTTagList lore = new NBTTagList();
-		lore.appendTag(new NBTTagString("Shift-rightclick with the catalyst once all items are in the altar to begin"));
+		lore.appendTag(new NBTTagString(I18n.format("jei.zensummoning.catalyst.lore")));
 		summonInfo.getCatalyst().getOrCreateSubCompound("display").setTag("Lore", lore);
 
 		List<ItemStack> eggs = summonInfo.getMobs().stream()
@@ -47,6 +47,6 @@ class AltarRecipe implements IRecipeWrapper {
 	public void drawInfo(Minecraft minecraft, int recipeWidth, int recipeHeight, int mouseX, int mouseY) {
 		int i=0;
 		for (MobInfo mob : summonInfo.getMobs())
-			minecraft.fontRenderer.drawString(I18n.format("jei.zensummoning.recipe.altar.entity",mob.getCount(),EntityList.getTranslationName(mob.getMob())), 0, 40 + 7*i++, Color.GRAY.getRGB());
+			minecraft.fontRenderer.drawString(I18n.format("jei.zensummoning.recipe.altar.entity",mob.getCount(), I18n.format("entity." + EntityList.getTranslationName(mob.getMob()) + ".name")), 0, 40 + 7*i++, Color.GRAY.getRGB());
 	}
 }
