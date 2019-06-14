@@ -2,6 +2,7 @@ package ca.teamdman.zensummoning.common.tiles;
 
 import ca.teamdman.zensummoning.*;
 import com.google.common.collect.ImmutableList;
+import crafttweaker.api.item.IIngredient;
 import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -128,13 +129,13 @@ public class TileAltar extends TileEntity implements ITickable {
 		//slot, quantity
 		//lets pretend there's no duplicates
 		HashMap<Integer, Integer> reagentMap = new HashMap<>();
-		for (ItemStack reagentStack : info.getReagents()) {
-			int remaining = reagentStack.getCount();
+		for (IIngredient reagent : info.getReagents()) {
+			int remaining = reagent.getAmount();
 			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
 				ItemStack slotStack = inventory.getStackInSlot(slot);
 				int       count     = slotStack.getCount() - reagentMap.getOrDefault(slot, 0);
-				if (reagentStack.isItemEqual(slotStack) && count > 0) {
-					reagentMap.merge(slot, Math.min(remaining, count), (a, b) -> a + b);
+				if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && count > 0) {
+					reagentMap.merge(slot, Math.min(remaining, count), Integer::sum);
 					remaining -= count;
 				}
 			}
@@ -158,7 +159,7 @@ public class TileAltar extends TileEntity implements ITickable {
 
 
 			reagentMap.forEach((slot, count) -> inventory.extractItem(slot, count, false));
-			handStack.shrink(info.getCatalyst().getCount());
+			handStack.shrink(info.getCatalyst().getAmount());
 			player.setHeldItem(hand, handStack);
 
 			return attempt;

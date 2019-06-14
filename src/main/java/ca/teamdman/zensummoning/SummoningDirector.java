@@ -1,6 +1,7 @@
 package ca.teamdman.zensummoning;
 
 import crafttweaker.annotations.ZenRegister;
+import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.item.ItemStack;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
@@ -20,7 +21,8 @@ public class SummoningDirector {
 	}
 
 	public static SummoningInfo getSummonInfo(ItemStack stack) {
-		return summonings.stream().filter(s -> s.getCatalyst().isItemEqual(stack) && s.getCatalyst().getCount() <= stack.getCount()).findFirst().orElse(null);
+		return summonings.stream().filter(s -> s.getCatalyst().matches(CraftTweakerMC.getIItemStack(stack))
+				&& s.getCatalyst().getAmount() <= stack.getCount()).findFirst().orElse(null);
 	}
 
 	public static Set<SummoningInfo> getSummonInfos() {
@@ -31,7 +33,7 @@ public class SummoningDirector {
 	@ZenMethod
 	public static void addSummonInfo(SummoningInfo info) {
 		summonings.add(info);
-		stackLimit = Math.max(info.getReagents().stream().mapToInt(r -> r.getCount() != -1 ? Math.max(r.getCount(), r.getMaxStackSize()) / r.getMaxStackSize() : 0).sum(), stackLimit);
+		stackLimit = Math.max(info.getReagents().size(), stackLimit);
 		ZenSummoning.log("addSummonInfo");
 	}
 

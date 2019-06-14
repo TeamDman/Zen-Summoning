@@ -3,6 +3,7 @@ package ca.teamdman.zensummoning.client.jei;
 import ca.teamdman.zensummoning.MobInfo;
 import ca.teamdman.zensummoning.SummoningInfo;
 import com.google.common.collect.Lists;
+import crafttweaker.api.minecraft.CraftTweakerMC;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
 import net.minecraft.client.Minecraft;
@@ -27,10 +28,10 @@ class AltarRecipe implements IRecipeWrapper {
 
 	@Override
 	public void getIngredients(IIngredients ingredients) {
-//		summonInfo.catalyst.getTooltip();
+
 		NBTTagList lore = new NBTTagList();
 		lore.appendTag(new NBTTagString(I18n.format("jei.zensummoning.catalyst.lore")));
-		summonInfo.getCatalyst().getOrCreateSubCompound("display").setTag("Lore", lore);
+		CraftTweakerMC.getItemStack(summonInfo.getCatalyst()).getOrCreateSubCompound("display").setTag("Lore", lore);
 
 		List<ItemStack> eggs = summonInfo.getMobs().stream()
 				.map(info -> {
@@ -39,7 +40,16 @@ class AltarRecipe implements IRecipeWrapper {
 					return stack;
 				}).collect(Collectors.toList());
 
-		ingredients.setInputs(ItemStack.class, Lists.asList(summonInfo.getCatalyst(), summonInfo.getReagents().toArray(new ItemStack[0])));
+		ingredients.setInputs(
+				ItemStack.class,
+				Lists.asList(
+						CraftTweakerMC.getItemStack(summonInfo.getCatalyst()),
+						summonInfo.getReagents()
+						.stream()
+						.map(CraftTweakerMC::getItemStack)
+						.toArray()
+				)
+		);
 		ingredients.setOutputs(ItemStack.class, eggs);
 	}
 

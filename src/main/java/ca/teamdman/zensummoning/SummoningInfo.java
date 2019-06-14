@@ -2,9 +2,8 @@ package ca.teamdman.zensummoning;
 
 import ca.teamdman.zensummoning.common.Mutator;
 import crafttweaker.annotations.ZenRegister;
-import crafttweaker.api.item.IItemStack;
-import crafttweaker.api.minecraft.CraftTweakerMC;
-import net.minecraft.item.ItemStack;
+import crafttweaker.api.item.IIngredient;
+import crafttweaker.api.item.IngredientUnknown;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
@@ -19,13 +18,14 @@ import java.util.List;
 @ZenClass(ZenSummoning.ZEN_PACKAGE + ".SummoningInfo")
 @ZenRegister
 public class SummoningInfo {
-	private ItemStack                 catalyst = ItemStack.EMPTY;
+	private IIngredient               catalyst = IngredientUnknown.INSTANCE;
 	private List<MobInfo>             mobs     = new ArrayList<>();
 	private Mutator<SummoningAttempt> mutator  = (__) -> {
 	};
-	private List<ItemStack>           reagents = new ArrayList<>();
+	private List<IIngredient>         reagents = new ArrayList<>();
 
-	private SummoningInfo(){}
+	private SummoningInfo() {
+	}
 
 	public static SummoningInfo fromNBT(NBTTagCompound compound) {
 		SummoningInfo info = new SummoningInfo();
@@ -53,30 +53,29 @@ public class SummoningInfo {
 		return new SummoningInfo();
 	}
 
-	public ItemStack getCatalyst() {
+	public IIngredient getCatalyst() {
 		return catalyst;
 	}
 
 	@ZenMethod
-	public SummoningInfo setCatalyst(IItemStack stack) {
-		this.catalyst = CraftTweakerMC.getItemStack(stack);
+	public SummoningInfo setCatalyst(IIngredient ingredient) {
+		this.catalyst = ingredient;
 		return this;
 	}
-
 
 
 	public List<MobInfo> getMobs() {
 		return Collections.unmodifiableList(mobs);
 	}
 
-	public List<ItemStack> getReagents() {
+	public List<IIngredient> getReagents() {
 		return Collections.unmodifiableList(reagents);
 	}
 
 	@ZenMethod
-	public SummoningInfo setReagents(IItemStack[] reagents) {
+	public SummoningInfo setReagents(IIngredient[] reagents) {
 		this.reagents.clear();
-		Collections.addAll(this.reagents, CraftTweakerMC.getItemStacks(reagents));
+		Collections.addAll(this.reagents, reagents);
 		return this;
 	}
 
