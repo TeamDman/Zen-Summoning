@@ -2,7 +2,7 @@
 A mod that allows for pack creators to set up custom summoning situations using ZenScript
 
 ## Example Script
-```JavaScript
+```ZenScript
 import crafttweaker.item.IItemStack;
 import crafttweaker.item.IIngredient;
 import mods.zensummoning.SummoningDirector;
@@ -14,6 +14,7 @@ SummoningDirector.enableDebugging();
 SummoningDirector.addSummonInfo(
     SummoningInfo.create()
         .setCatalyst(<minecraft:stick>)
+        .setConsumeCatalyst(false)
         .setReagents([<minecraft:stone>, <minecraft:egg>*12])
         .addMob(MobInfo.create()
             .setMob("minecraft:cow")
