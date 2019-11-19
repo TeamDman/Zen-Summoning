@@ -1,8 +1,6 @@
 package ca.teamdman.zensummoning;
 
 import crafttweaker.annotations.ZenRegister;
-import crafttweaker.api.minecraft.CraftTweakerMC;
-import net.minecraft.item.ItemStack;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
 
@@ -20,15 +18,9 @@ public class SummoningDirector {
 		return stackLimit;
 	}
 
-	public static SummoningInfo getSummonInfo(ItemStack stack) {
-		return summonings.stream().filter(s -> s.getCatalyst().matches(CraftTweakerMC.getIItemStack(stack))
-				&& s.getCatalyst().getAmount() <= stack.getCount()).findFirst().orElse(null);
-	}
-
 	public static Set<SummoningInfo> getSummonInfos() {
 		return Collections.unmodifiableSet(summonings);
 	}
-
 
 	@ZenMethod
 	public static void addSummonInfo(SummoningInfo info) {

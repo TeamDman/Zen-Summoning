@@ -27,7 +27,10 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 public class TileAltar extends TileEntity implements ITickable {
 	public final  int              TIME_TO_SPAWN   = 5 * 20;
@@ -119,32 +122,50 @@ public class TileAltar extends TileEntity implements ITickable {
 		}
 
 		ItemStack     handStack = player.getHeldItem(hand);
-		SummoningInfo info      = SummoningDirector.getSummonInfo(handStack);
+		//slot, quantity
+		HashMap<Integer, Integer> reagentMap = new HashMap<>();
+		SummoningInfo             info = null;
+		String                    message = "chat.zensummoning.no_match";
+		List<SummoningInfo>       infoList = new ArrayList<>(SummoningDirector.getSummonInfos());
+		Collections.shuffle(infoList);
+		for (SummoningInfo v : infoList) {
+			if (!v.getCatalyst().matches(CraftTweakerMC.getIItemStack(handStack)))
+				continue;
+			message = "chat.zensummoning.unsatisfied";
+			if (v.getCatalyst().getAmount() > handStack.getCount())
+				continue;
+			reagentMap.clear();
+			boolean found = true;
+			for (IIngredient reagent : v.getReagents()) {
+				int remaining = reagent.getAmount();
+				for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
+					ItemStack slotStack = inventory.getStackInSlot(slot);
+
+					// Make sure we don't take from the same slot twice without noticing
+					int       available     = slotStack.getCount() - reagentMap.getOrDefault(slot, 0);
+
+					if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
+						reagentMap.merge(slot, Math.min(remaining, available), Integer::sum);
+						remaining -= available;
+					}
+				}
+				if (remaining > 0) {
+					found = false;
+					break;
+				}
+			}
+			if (found) {
+				info = v;
+				break;
+			}
+		}
+
 		if (info == null) {
 			attempt.setSuccess(false);
-			attempt.setMessage("chat.zensummoning.no_match");
+			attempt.setMessage(message);
 			return attempt;
 		}
 
-		//slot, quantity
-		//lets pretend there's no duplicates
-		HashMap<Integer, Integer> reagentMap = new HashMap<>();
-		for (IIngredient reagent : info.getReagents()) {
-			int remaining = reagent.getAmount();
-			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
-				ItemStack slotStack = inventory.getStackInSlot(slot);
-				int       count     = slotStack.getCount() - reagentMap.getOrDefault(slot, 0);
-				if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && count > 0) {
-					reagentMap.merge(slot, Math.min(remaining, count), Integer::sum);
-					remaining -= count;
-				}
-			}
-			if (remaining > 0) {
-				attempt.setSuccess(false);
-				attempt.setMessage("chat.zensummoning.unsatisfied");
-				return attempt;
-			}
-		}
 
 		info.getMutator().accept(attempt);
 		if (!attempt.isSuccess()) {
