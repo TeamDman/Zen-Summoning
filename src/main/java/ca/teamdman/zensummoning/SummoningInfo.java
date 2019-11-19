@@ -23,6 +23,7 @@ public class SummoningInfo {
 	private Mutator<SummoningAttempt> mutator  = (__) -> {
 	};
 	private List<IIngredient>         reagents = new ArrayList<>();
+	private boolean 				  consumeCatalyst = true;
 
 	private SummoningInfo() {
 	}
@@ -61,6 +62,16 @@ public class SummoningInfo {
 	public SummoningInfo setCatalyst(IIngredient ingredient) {
 		this.catalyst = ingredient;
 		return this;
+	}
+
+	@ZenMethod
+	public SummoningInfo setConsumeCatalyst(boolean value) {
+		this.consumeCatalyst = value;
+		return this;
+	}
+
+	public boolean isCatalystConsumed() {
+		return this.consumeCatalyst;
 	}
 
 

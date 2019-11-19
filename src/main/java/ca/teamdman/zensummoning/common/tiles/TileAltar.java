@@ -159,7 +159,8 @@ public class TileAltar extends TileEntity implements ITickable {
 
 
 			reagentMap.forEach((slot, count) -> inventory.extractItem(slot, count, false));
-			handStack.shrink(info.getCatalyst().getAmount());
+			if (info.isCatalystConsumed())
+				handStack.shrink(info.getCatalyst().getAmount());
 			player.setHeldItem(hand, handStack);
 
 			return attempt;
