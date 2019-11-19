@@ -4,22 +4,22 @@ import crafttweaker.annotations.ZenRegister;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 @ZenRegister
 @ZenClass(ZenSummoning.ZEN_PACKAGE + ".SummoningDirector")
 public class SummoningDirector {
-	private static final Set<SummoningInfo> summonings = new HashSet<>();
-	private static       int                stackLimit = 0;
+	private static final List<SummoningInfo> summonings = new ArrayList<>();
+	private static       int                 stackLimit = 0;
 
 	public static int getStackLimit() {
 		return stackLimit;
 	}
 
-	public static Set<SummoningInfo> getSummonInfos() {
-		return Collections.unmodifiableSet(summonings);
+	public static List<SummoningInfo> getSummonInfos() {
+		return Collections.unmodifiableList(summonings);
 	}
 
 	@ZenMethod
