@@ -25,6 +25,7 @@ public class SummoningInfo {
 	private Mutator<SummoningAttempt> mutator         = (__) -> {
 	};
 	private List<IIngredient>         reagents        = new ArrayList<>();
+	private double weight = 1;
 
 	private SummoningInfo() {
 	}
@@ -53,6 +54,15 @@ public class SummoningInfo {
 	@ZenMethod
 	public static SummoningInfo create() {
 		return new SummoningInfo();
+	}
+
+	public double getWeight() {
+		return weight;
+	}
+
+	@ZenMethod
+	public void setWeight(double weight) {
+		this.weight = weight;
 	}
 
 	public IIngredient getCatalyst() {

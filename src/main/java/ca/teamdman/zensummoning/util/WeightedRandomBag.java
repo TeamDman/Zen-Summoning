@@ -1,11 +1,9 @@
 package ca.teamdman.zensummoning.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.function.Predicate;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class WeightedRandomBag<T> {
+public class WeightedRandomBag<T> implements Iterable<T> {
 
 	private double      accumulatedWeight;
 	private List<Entry> entries = new ArrayList<>();
@@ -20,20 +18,38 @@ public class WeightedRandomBag<T> {
 	}
 
 	public T getRandom() {
-		return getRandom(null);
+		int index = getRandomIndex();
+		if (index == -1)
+			return null;
+		return entries.get(index).object;
 	}
 
-	public T getRandom(Predicate<T> condition) {
+	private int getRandomIndex() {
 		double r = rand.nextDouble() * accumulatedWeight;
-
-		for (Entry entry : entries) {
-			if (condition == null || condition.test(entry.object)) {
-				if (entry.accumulatedWeight >= r) {
-					return entry.object;
-				}
+		for (int i = 0; i < entries.size(); i++) {
+			if (entries.get(i).accumulatedWeight >= r) {
+				return i;
 			}
 		}
-		return null; //should only happen when there are no entries
+		return -1;
+	}
+
+	public List<T> getList() {
+		return entries.stream().map(e -> e.object).collect(Collectors.toList());
+	}
+
+	@Override
+	public Iterator<T> iterator() {
+		ArrayList<T>     items = new ArrayList<>();
+		HashSet<Integer> used  = new HashSet<>();
+		while (used.size() < entries.size()) {
+			int index = getRandomIndex();
+			if (!used.contains(index)) {
+				used.add(index);
+				items.add(entries.get(index).object);
+			}
+		}
+		return items.iterator();
 	}
 
 	private class Entry {

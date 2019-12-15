@@ -20,7 +20,7 @@ public class JEIPlugin implements IModPlugin {
 
 	@Override
 	public void register(IModRegistry registry) {
-		registry.addRecipes(SummoningDirector.getSummonInfos(), ZenSummoning.JEI_CATEGORY);
+		registry.addRecipes(SummoningDirector.getSummonInfos().getList(), ZenSummoning.JEI_CATEGORY);
 		registry.handleRecipes(SummoningInfo.class, AltarRecipe::new, ZenSummoning.JEI_CATEGORY);
 		registry.addRecipeCatalyst(new ItemStack(Registrar.Blocks.ALTAR), ZenSummoning.JEI_CATEGORY);
 	}

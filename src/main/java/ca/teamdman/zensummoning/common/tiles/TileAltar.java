@@ -31,10 +31,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
 public class TileAltar extends TileEntity implements ITickable {
 	public final  int              TIME_TO_SPAWN   = 5 * 20;
@@ -127,18 +124,17 @@ public class TileAltar extends TileEntity implements ITickable {
 
 		ItemStack     handStack = player.getHeldItem(hand);
 		//slot, quantity
-		HashMap<Integer, Integer> reagentMap = new HashMap<>();
+		HashMap<Integer, Integer> slotAmounts = new HashMap<>();
 		SummoningInfo             info = null;
 		String                    message = "chat.zensummoning.no_match";
-		List<SummoningInfo>       infoList = new ArrayList<>(SummoningDirector.getSummonInfos());
-		Collections.shuffle(infoList);
-		for (SummoningInfo v : infoList) {
+		for (SummoningInfo v : SummoningDirector.getSummonInfos()) {
 			if (!v.getCatalyst().matches(CraftTweakerMC.getIItemStack(handStack)))
 				continue;
 			message = "chat.zensummoning.unsatisfied";
 			if (v.getCatalyst().getAmount() > handStack.getCount())
 				continue;
-			reagentMap.clear();
+
+			slotAmounts.clear();
 			boolean found = true;
 			for (IIngredient reagent : v.getReagents()) {
 				int remaining = reagent.getAmount();
@@ -146,10 +142,10 @@ public class TileAltar extends TileEntity implements ITickable {
 					ItemStack slotStack = inventory.getStackInSlot(slot);
 
 					// Make sure we don't take from the same slot twice without noticing
-					int       available     = slotStack.getCount() - reagentMap.getOrDefault(slot, 0);
+					int       available     = slotStack.getCount() - slotAmounts.getOrDefault(slot, 0);
 
 					if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
-						reagentMap.merge(slot, Math.min(remaining, available), Integer::sum);
+						slotAmounts.merge(slot, Math.min(remaining, available), Integer::sum);
 						remaining -= available;
 					}
 				}
@@ -183,7 +179,7 @@ public class TileAltar extends TileEntity implements ITickable {
 			world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
 
 
-			reagentMap.forEach((slot, count) -> inventory.extractItem(slot, count, false));
+			slotAmounts.forEach((slot, count) -> inventory.extractItem(slot, count, false));
 			if (info.isCatalystConsumed())
 				handStack.shrink(info.getCatalyst().getAmount());
 			player.setHeldItem(hand, handStack);
