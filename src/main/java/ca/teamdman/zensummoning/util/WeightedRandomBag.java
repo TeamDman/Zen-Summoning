@@ -1,4 +1,4 @@
-package ca.teamdman.zensummoning;
+package ca.teamdman.zensummoning.util;
 
 import java.util.ArrayList;
 import java.util.List;

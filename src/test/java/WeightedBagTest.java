@@ -1,4 +1,4 @@
-import ca.teamdman.zensummoning.WeightedRandomBag;
+import ca.teamdman.zensummoning.util.WeightedRandomBag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Comparator;
