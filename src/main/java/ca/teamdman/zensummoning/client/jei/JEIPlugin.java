@@ -1,10 +1,10 @@
 package ca.teamdman.zensummoning.client.jei;
 
 
-import ca.teamdman.zensummoning.SummoningDirector;
-import ca.teamdman.zensummoning.SummoningInfo;
 import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.Registrar;
+import ca.teamdman.zensummoning.common.summoning.SummoningDirector;
+import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.IModRegistry;
 import mezz.jei.api.recipe.IRecipeCategoryRegistration;

@@ -1,7 +1,7 @@
 package ca.teamdman.zensummoning.common.blocks;
 
-import ca.teamdman.zensummoning.SummoningAttempt;
 import ca.teamdman.zensummoning.ZenSummoning;
+import ca.teamdman.zensummoning.common.summoning.SummoningAttempt;
 import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;

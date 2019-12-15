@@ -1,5 +1,6 @@
-package ca.teamdman.zensummoning;
+package ca.teamdman.zensummoning.common.summoning;
 
+import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.Mutator;
 import crafttweaker.annotations.ZenRegister;
 import crafttweaker.api.item.IIngredient;
@@ -18,12 +19,12 @@ import java.util.List;
 @ZenClass(ZenSummoning.ZEN_PACKAGE + ".SummoningInfo")
 @ZenRegister
 public class SummoningInfo {
-	private IIngredient               catalyst = IngredientUnknown.INSTANCE;
-	private List<MobInfo>             mobs     = new ArrayList<>();
-	private Mutator<SummoningAttempt> mutator  = (__) -> {
+	private IIngredient               catalyst        = IngredientUnknown.INSTANCE;
+	private boolean                   consumeCatalyst = true;
+	private List<MobInfo>             mobs            = new ArrayList<>();
+	private Mutator<SummoningAttempt> mutator         = (__) -> {
 	};
-	private List<IIngredient>         reagents = new ArrayList<>();
-	private boolean 				  consumeCatalyst = true;
+	private List<IIngredient>         reagents        = new ArrayList<>();
 
 	private SummoningInfo() {
 	}

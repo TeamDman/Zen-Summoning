@@ -1,5 +1,6 @@
-package ca.teamdman.zensummoning;
+package ca.teamdman.zensummoning.common.summoning;
 
+import ca.teamdman.zensummoning.ZenSummoning;
 import crafttweaker.annotations.ZenRegister;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenMethod;

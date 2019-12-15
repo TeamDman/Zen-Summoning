@@ -1,7 +1,7 @@
 package ca.teamdman.zensummoning.client.jei;
 
-import ca.teamdman.zensummoning.MobInfo;
-import ca.teamdman.zensummoning.SummoningInfo;
+import ca.teamdman.zensummoning.common.summoning.MobInfo;
+import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
 import com.google.common.collect.Lists;
 import crafttweaker.api.minecraft.CraftTweakerMC;
 import mezz.jei.api.ingredients.IIngredients;
