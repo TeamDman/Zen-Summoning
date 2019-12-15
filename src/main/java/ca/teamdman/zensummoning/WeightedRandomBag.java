@@ -7,14 +7,9 @@ import java.util.function.Predicate;
 
 public class WeightedRandomBag<T> {
 
-	private class Entry {
-		double accumulatedWeight;
-		T object;
-	}
-
+	private double      accumulatedWeight;
 	private List<Entry> entries = new ArrayList<>();
-	private double accumulatedWeight;
-	private Random rand = new Random();
+	private Random      rand    = new Random();
 
 	public void addEntry(T object, double weight) {
 		accumulatedWeight += weight;
@@ -31,7 +26,7 @@ public class WeightedRandomBag<T> {
 	public T getRandom(Predicate<T> condition) {
 		double r = rand.nextDouble() * accumulatedWeight;
 
-		for (Entry entry: entries) {
+		for (Entry entry : entries) {
 			if (condition == null || condition.test(entry.object)) {
 				if (entry.accumulatedWeight >= r) {
 					return entry.object;
@@ -39,5 +34,10 @@ public class WeightedRandomBag<T> {
 			}
 		}
 		return null; //should only happen when there are no entries
+	}
+
+	private class Entry {
+		double accumulatedWeight;
+		T      object;
 	}
 }
