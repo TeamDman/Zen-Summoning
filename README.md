@@ -71,3 +71,5 @@ Setting the `message` property will set the string to be displayed to the user w
 [Another](https://streamable.com/7ay4r)
 
 [What the JEI integration looks like](https://i.imgur.com/e6jLo6u.png)
+
+![UML](docs/docs.png)
