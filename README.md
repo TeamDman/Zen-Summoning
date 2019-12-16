@@ -73,3 +73,39 @@ Setting the `message` property will set the string to be displayed to the user w
 ![What the JEI integration looks like](https://i.imgur.com/e6jLo6u.png)
 
 ![UML](docs/docs.png)
+
+An example using weighted summoning, where both the catalysts and the reagents must be the same.
+```zenscript
+
+SummoningDirector.addSummonInfo(
+    SummoningInfo.create()
+        .setCatalyst(<minecraft:pumpkin>*3)
+        .setReagents([<minecraft:iron_ingot>*2, <minecraft:snow>*2, <minecraft:iron_bars>*2])
+        .addMob(MobInfo.create()
+            .setMob("minecraft:blaze")
+        )
+        .setWeight(0.5)
+    .setMutator(function (attempt as SummoningAttempt) {
+        if (attempt.world.raining) {
+            attempt.success = false;
+            attempt.message = "test!";
+        }
+    })
+);
+
+SummoningDirector.addSummonInfo(
+    SummoningInfo.create()
+        .setCatalyst(<minecraft:pumpkin>*3)
+        .setReagents([<minecraft:iron_ingot>*2, <minecraft:snow>*2, <minecraft:iron_bars>*2])
+        .addMob(MobInfo.create()
+            .setMob("minecraft:cow")
+        )
+        .setWeight(2)
+    .setMutator(function (attempt as SummoningAttempt) {
+        if (attempt.world.raining) {
+            attempt.success = false;
+            attempt.message = "test!";
+        }
+    })
+);
+```
