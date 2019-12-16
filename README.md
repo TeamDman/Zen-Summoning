@@ -64,11 +64,11 @@ Setting `success=false` will cancel an otherwise valid summoning attempt.
 
 Setting the `message` property will set the string to be displayed to the user when their attempt either succeeds or fails.
 
-![Example video](https://streamable.com/hflui)
+[Example video](https://streamable.com/hflui)
 
-![Another](https://streamable.com/snlbk)
+[Another](https://streamable.com/snlbk)
 
-![Another](https://streamable.com/7ay4r)
+[Another](https://streamable.com/7ay4r)
 
 ![What the JEI integration looks like](https://i.imgur.com/e6jLo6u.png)
 
