@@ -38,6 +38,10 @@ public class WeightedRandomBag<T> implements Iterable<T> {
 		return entries.stream().map(e -> e.object).collect(Collectors.toList());
 	}
 
+	public int size() {
+		return entries.size();
+	}
+
 	@Override
 	public Iterator<T> iterator() {
 		ArrayList<T>     items = new ArrayList<>();
