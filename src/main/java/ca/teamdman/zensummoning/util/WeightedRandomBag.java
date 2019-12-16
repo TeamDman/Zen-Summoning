@@ -24,6 +24,10 @@ public class WeightedRandomBag<T> implements Iterable<T> {
 		return entries.get(index).object;
 	}
 
+	public boolean isEmpty() {
+		return entries.isEmpty();
+	}
+
 	private int getRandomIndex() {
 		double r = rand.nextDouble() * accumulatedWeight;
 		for (int i = 0; i < entries.size(); i++) {

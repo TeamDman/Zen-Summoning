@@ -5,6 +5,7 @@ import ca.teamdman.zensummoning.common.summoning.MobInfo;
 import ca.teamdman.zensummoning.common.summoning.SummoningAttempt;
 import ca.teamdman.zensummoning.common.summoning.SummoningDirector;
 import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
+import ca.teamdman.zensummoning.util.WeightedRandomBag;
 import com.google.common.collect.ImmutableList;
 import crafttweaker.api.item.IIngredient;
 import crafttweaker.api.minecraft.CraftTweakerMC;
@@ -123,46 +124,24 @@ public class TileAltar extends TileEntity implements ITickable {
 		}
 
 		ItemStack     handStack = player.getHeldItem(hand);
-		//slot, quantity
-		HashMap<Integer, Integer> slotAmounts = new HashMap<>();
-		SummoningInfo             info = null;
-		String                    message = "chat.zensummoning.no_match";
-		for (SummoningInfo v : SummoningDirector.getSummonInfos()) {
-			if (!v.getCatalyst().matches(CraftTweakerMC.getIItemStack(handStack)))
-				continue;
-			message = "chat.zensummoning.unsatisfied";
-			if (v.getCatalyst().getAmount() > handStack.getCount())
-				continue;
-			slotAmounts.clear();
-			boolean found = true;
-			for (IIngredient reagent : v.getReagents()) {
-				int remaining = reagent.getAmount();
-				for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
-					ItemStack slotStack = inventory.getStackInSlot(slot);
-					// Make sure we don't take from the same slot twice without noticing
-					int       available     = slotStack.getCount() - slotAmounts.getOrDefault(slot, 0);
-					if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
-						slotAmounts.merge(slot, Math.min(remaining, available), Integer::sum);
-						remaining -= available;
-					}
-				}
-				if (remaining > 0) {
-					found = false;
-					break;
-				}
-			}
-			if (found) {
-				info = v;
-				break;
-			}
-		}
+		WeightedRandomBag<SummoningInfo> bag = new WeightedRandomBag<>();
+		SummoningDirector.getSummonInfos().stream()
+				.filter(x -> meetsCriteria(x, handStack))
+				.forEach(x -> bag.addEntry(x, x.getWeight()));
 
-		if (info == null) {
+		if (bag.isEmpty()) {
 			attempt.setSuccess(false);
-			attempt.setMessage(message);
+			attempt.setMessage(getAssumedErrorMessage(handStack));
 			return attempt;
 		}
 
+		SummoningInfo             info = bag.getRandom();
+		HashMap<Integer, Integer> slotAmounts = new HashMap<>();
+		if (!attemptPopulateSlotsToConsume(info, slotAmounts)) {
+			attempt.setSuccess(false);
+			attempt.setMessage("chat.zensummoning.unknown_error");
+			return attempt;
+		}
 
 		info.getMutator().accept(attempt);
 		if (!attempt.isSuccess()) {
@@ -175,6 +154,71 @@ public class TileAltar extends TileEntity implements ITickable {
 			player.setHeldItem(hand, handStack);
 			return attempt;
 		}
+	}
+
+	/**
+	 * Fills a map of slot:quantity for items to be consumed by the summoning
+	 * @param info info containing ingredients to look for
+	 * @param rtn map to be mutated
+	 * @return info's constraints satisfied
+	 */
+	private boolean attemptPopulateSlotsToConsume(SummoningInfo info, HashMap<Integer, Integer> rtn) {
+		rtn.clear();
+		for (IIngredient reagent : info.getReagents()) {
+			int remaining = reagent.getAmount();
+			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
+				ItemStack slotStack = inventory.getStackInSlot(slot);
+				// Make sure we don't take from the same slot twice without noticing
+				int       available     = slotStack.getCount() - rtn.getOrDefault(slot, 0);
+				if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
+					rtn.merge(slot, Math.min(remaining, available), Integer::sum);
+					remaining -= available;
+				}
+			}
+			if (remaining > 0) {
+				rtn.clear();
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if a given info meets all criteria for summoning.
+	 * @param info info to check
+	 * @param handStack player's held stack
+	 * @return info's constraints satisfied
+	 */
+	private boolean meetsCriteria(SummoningInfo info, ItemStack handStack) {
+		if (!info.getCatalyst().matches(CraftTweakerMC.getIItemStack(handStack)))
+			return false;
+		if (info.getCatalyst().getAmount() > handStack.getCount())
+			return false;
+		return attemptPopulateSlotsToConsume(info, new HashMap<>());
+	}
+
+	/**
+	 * Assuming that there's no valid summoning, get the most likely error message.
+	 * @param handStack player's held stack
+	 * @return unlocalized error message
+	 */
+	private String getAssumedErrorMessage(ItemStack handStack) {
+		String msg = "chat.zensummoning.no_match";
+		int mask = 0;
+		for (SummoningInfo info : SummoningDirector.getSummonInfos()) {
+			if (info.getCatalyst().amount(1).matches(CraftTweakerMC.getIItemStack(handStack))) {
+				mask |= 0x01; // we found a matching catalyst, unknown if hand quantity satisfies
+				if (info.getCatalyst().getAmount() < handStack.getCount()) {
+					mask |= 0x10; // we found a matching catalyst, knowing hand quantity satisfies
+				}
+			}
+		}
+		if (mask == 0x00) // no matching catalyst
+			return "chat.zensummoning.no_match";
+		else if (mask == 0x01) // no catalyst that hand quantity satisfies
+			return "chat.zensummoning.unsatisfied_hand";
+		else // assuming that recipe contents are unsatisfied, since the hand quantity satisfies
+			return "chat.zensummoning.unsatisfied";
 	}
 
 	private void beginSummoning(SummoningInfo info) {

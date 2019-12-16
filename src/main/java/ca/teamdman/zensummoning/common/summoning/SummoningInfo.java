@@ -61,8 +61,9 @@ public class SummoningInfo {
 	}
 
 	@ZenMethod
-	public void setWeight(double weight) {
+	public SummoningInfo setWeight(double weight) {
 		this.weight = weight;
+		return this;
 	}
 
 	public IIngredient getCatalyst() {
