@@ -105,7 +105,7 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 				}
 			} else {
 				ZenSummoning.log("Altar onBlockActivated player is sneaking");
-				SummoningAttempt result = altar.summonStart(playerIn, hand);
+				SummoningAttempt result = altar.attemptSummon(playerIn, hand);
 				ZenSummoning.log("Altar onBlockActivated summon " + result.getMessage());
 				playerIn.sendMessage(new TextComponentTranslation(result.getMessage()));
 				if (result.isSuccess()) {

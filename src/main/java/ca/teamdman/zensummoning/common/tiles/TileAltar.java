@@ -113,7 +113,7 @@ public class TileAltar extends TileEntity implements ITickable {
 	 *
 	 * @return True if something was summoned.
 	 */
-	public SummoningAttempt summonStart(EntityPlayer player, EnumHand hand) {
+	public SummoningAttempt attemptSummon(EntityPlayer player, EnumHand hand) {
 		ZenSummoning.log("summonStart");
 		SummoningAttempt attempt = new SummoningAttempt(CraftTweakerMC.getIWorld(this.world), CraftTweakerMC.getIBlockPos(this.pos));
 		if (isSpawning()) {
@@ -133,17 +133,14 @@ public class TileAltar extends TileEntity implements ITickable {
 			message = "chat.zensummoning.unsatisfied";
 			if (v.getCatalyst().getAmount() > handStack.getCount())
 				continue;
-
 			slotAmounts.clear();
 			boolean found = true;
 			for (IIngredient reagent : v.getReagents()) {
 				int remaining = reagent.getAmount();
 				for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
 					ItemStack slotStack = inventory.getStackInSlot(slot);
-
 					// Make sure we don't take from the same slot twice without noticing
 					int       available     = slotStack.getCount() - slotAmounts.getOrDefault(slot, 0);
-
 					if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
 						slotAmounts.merge(slot, Math.min(remaining, available), Integer::sum);
 						remaining -= available;
@@ -171,21 +168,22 @@ public class TileAltar extends TileEntity implements ITickable {
 		if (!attempt.isSuccess()) {
 			return attempt;
 		} else {
-			this.summonInfo = info;
-			this.summonCountdown = TIME_TO_SPAWN;
-			this.renderTick = 0;
-
-			world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-			world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
-
-
+			beginSummoning(info);
 			slotAmounts.forEach((slot, count) -> inventory.extractItem(slot, count, false));
 			if (info.isCatalystConsumed())
 				handStack.shrink(info.getCatalyst().getAmount());
 			player.setHeldItem(hand, handStack);
-
 			return attempt;
 		}
+	}
+
+	private void beginSummoning(SummoningInfo info) {
+		this.summonInfo = info;
+		this.summonCountdown = TIME_TO_SPAWN;
+		this.renderTick = 0;
+
+		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
 	}
 
 	/**
