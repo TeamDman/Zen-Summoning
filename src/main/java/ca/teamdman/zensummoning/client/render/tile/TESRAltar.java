@@ -23,7 +23,7 @@ public class TESRAltar extends TileEntitySpecialRenderer<TileAltar> {
 			GlStateManager.rotate((int) getWorld().getTotalWorldTime(), 0, 1, 0);
 			for (ItemStack stack : stacks) {
 				GlStateManager.rotate(360f / dist, 0, 1, 0);
-				if (te.isSpawning()) {
+				if (te.isSummoning()) {
 					GlStateManager.translate(0, 1.2 * (1-scale), 0);
 				}
 				GlStateManager.pushMatrix();

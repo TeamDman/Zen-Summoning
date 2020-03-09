@@ -4,7 +4,6 @@ import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.summoning.SummoningAttempt;
 import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,9 +20,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-//todo: https://discordapp.com/channels/176780432371744769/179315645005955072/564327293057630228
-// don't impl ITileEntityProvider
-public class BlockAltar extends Block implements ITileEntityProvider {
+
+import javax.annotation.Nullable;
+
+public class BlockAltar extends Block {
 	private final AxisAlignedBB bb = new AxisAlignedBB(0.0625D, 0.0D, 0.0625D, 0.9375D, 0.0625D, 0.9375D);
 
 	public BlockAltar() {
@@ -35,7 +35,14 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta) {
+	public boolean hasTileEntity(IBlockState ignored) {
+		return true;
+	}
+
+	@SuppressWarnings("NullableProblems")
+	@Nullable
+	@Override
+	public TileEntity createTileEntity(World world, IBlockState state) {
 		return new TileAltar();
 	}
 
@@ -105,7 +112,9 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 				}
 			} else {
 				ZenSummoning.log("Altar onBlockActivated player is sneaking");
-				SummoningAttempt result = altar.attemptSummon(playerIn, hand);
+				ItemStack catalyst = playerIn.getHeldItem(hand);
+				SummoningAttempt result = altar.attemptSummon(catalyst);
+				playerIn.setHeldItem(hand, catalyst);
 				ZenSummoning.log("Altar onBlockActivated summon " + result.getMessage());
 				playerIn.sendMessage(new TextComponentTranslation(result.getMessage()));
 				if (result.isSuccess()) {
@@ -119,4 +128,28 @@ public class BlockAltar extends Block implements ITileEntityProvider {
 		return true;
 	}
 
+	@Override
+	public boolean canConnectRedstone(IBlockState state, IBlockAccess world, BlockPos pos, @Nullable EnumFacing side) {
+		return true;
+	}
+
+
+	@Override
+	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
+		if (!world.isRemote && world.isBlockPowered(pos)) {
+			TileEntity tile = world.getTileEntity(pos);
+			if (!(tile instanceof TileAltar)) {
+				ZenSummoning.log("Altar onBlockActivated tile not altar?");
+				return;
+			}
+			if (((TileAltar) tile).isSummoning())
+				return;
+
+			if (((TileAltar) tile).attemptWorldSummon().isPresent()) {
+				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
+			} else {
+				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);
+			}
+		}
+	}
 }

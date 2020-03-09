@@ -9,10 +9,9 @@ import ca.teamdman.zensummoning.util.WeightedRandomBag;
 import com.google.common.collect.ImmutableList;
 import crafttweaker.api.item.IIngredient;
 import crafttweaker.api.minecraft.CraftTweakerMC;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -20,11 +19,9 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -33,6 +30,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.Optional;
 
 public class TileAltar extends TileEntity implements ITickable {
 	public final  int              TIME_TO_SPAWN   = 5 * 20;
@@ -51,7 +49,7 @@ public class TileAltar extends TileEntity implements ITickable {
 
 	@Override
 	public void update() {
-		if (!isSpawning()) {
+		if (!isSummoning()) {
 			if (renderTick > -1)
 				renderTick--;
 			return;
@@ -70,7 +68,7 @@ public class TileAltar extends TileEntity implements ITickable {
 	 *
 	 * @return isSpawning
 	 */
-	public boolean isSpawning() {
+	public boolean isSummoning() {
 		return summonInfo != null && summonCountdown >= 0;
 	}
 
@@ -109,78 +107,100 @@ public class TileAltar extends TileEntity implements ITickable {
 	}
 
 	/**
-	 * Attempts to perform a summon, given a catalyst.
-	 * Called server-only from {@link ca.teamdman.zensummoning.common.blocks.BlockAltar#onBlockActivated(World, BlockPos, IBlockState, EntityPlayer, EnumHand, EnumFacing, float, float, float)}
-	 *
-	 * @return True if something was summoned.
+	 * Attempts to pick a summoning info for the given catalyst.
 	 */
-	public SummoningAttempt attemptSummon(EntityPlayer player, EnumHand hand) {
+	private Optional<SummoningInfo> getSummonInfo(ItemStack catalyst) {
+		WeightedRandomBag<SummoningInfo> bag = new WeightedRandomBag<>();
+		SummoningDirector.getSummonInfos().stream()
+				.filter(x -> meetsCriteria(x, catalyst))
+				.forEach(x -> bag.addEntry(x, x.getWeight()));
+
+		if (bag.isEmpty()) {
+			return Optional.empty();
+		} else {
+			return Optional.of(bag.getRandom());
+		}
+	}
+
+	/**
+	 * Attempts to perform a summon.
+	 * Should be called server-only.
+	 * Likely triggered by a redstone pulse.
+	 */
+	public SummoningAttempt attemptSummon(ItemStack catalyst) {
 		ZenSummoning.log("summonStart");
 		SummoningAttempt attempt = new SummoningAttempt(CraftTweakerMC.getIWorld(this.world), CraftTweakerMC.getIBlockPos(this.pos));
-		if (isSpawning()) {
+		if (isSummoning()) {
 			attempt.setSuccess(false);
 			attempt.setMessage("chat.zensummoning.busy");
 			return attempt;
 		}
 
-		ItemStack     handStack = player.getHeldItem(hand);
-		WeightedRandomBag<SummoningInfo> bag = new WeightedRandomBag<>();
-		SummoningDirector.getSummonInfos().stream()
-				.filter(x -> meetsCriteria(x, handStack))
-				.forEach(x -> bag.addEntry(x, x.getWeight()));
-
-		if (bag.isEmpty()) {
+		Optional<SummoningInfo> infoMatch = getSummonInfo(catalyst);
+		if (!infoMatch.isPresent()){
 			attempt.setSuccess(false);
-			attempt.setMessage(getAssumedErrorMessage(handStack));
+			attempt.setMessage(getAssumedErrorMessage(catalyst));
 			return attempt;
 		}
+		SummoningInfo info = infoMatch.get();
 
-		SummoningInfo             info = bag.getRandom();
-		HashMap<Integer, Integer> slotAmounts = new HashMap<>();
-		if (!attemptPopulateSlotsToConsume(info, slotAmounts)) {
+		Optional<HashMap<Integer, Integer>> slotsMatch = getIngredientsToConsume(info);
+		if (!slotsMatch.isPresent()) {
 			attempt.setSuccess(false);
 			attempt.setMessage("chat.zensummoning.unknown_error");
 			return attempt;
 		}
 
 		info.getMutator().accept(attempt);
-		if (!attempt.isSuccess()) {
+		if (!attempt.isSuccess())
 			return attempt;
-		} else {
-			beginSummoning(info);
-			slotAmounts.forEach((slot, count) -> inventory.extractItem(slot, count, false));
-			if (info.isCatalystConsumed())
-				handStack.shrink(info.getCatalyst().getAmount());
-			player.setHeldItem(hand, handStack);
-			return attempt;
-		}
+
+		beginSummoning(info);
+		slotsMatch.get().forEach((slot, count) -> inventory.extractItem(slot, count, false));
+		if (info.isCatalystConsumed())
+			catalyst.shrink(info.getCatalyst().getAmount());
+		return attempt;
 	}
 
 	/**
-	 * Fills a map of slot:quantity for items to be consumed by the summoning
-	 * @param info info containing ingredients to look for
-	 * @param rtn map to be mutated
-	 * @return info's constraints satisfied
+	 * Attempt to perform a summoning, detecting the catalyst as a dropped item in the world.
+	 * Only a successful attempt returns a non-empty value.
 	 */
-	private boolean attemptPopulateSlotsToConsume(SummoningInfo info, HashMap<Integer, Integer> rtn) {
-		rtn.clear();
+	public Optional<SummoningAttempt> attemptWorldSummon() {
+		final AxisAlignedBB itemRange = new AxisAlignedBB(-1,-1,-1,1,1,1).offset(pos);
+		for (EntityItem ent : world.getEntitiesWithinAABB(EntityItem.class, itemRange)) {
+			SummoningAttempt attempt = attemptSummon(ent.getItem());
+			if (attempt.isSuccess())
+				return Optional.of(attempt);
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * Fills a map of slot:quantity for items to be consumed by the summoning.
+	 * If optional is empty, some items were not found and the summon should be aborted.
+	 *
+	 * @param info info containing ingredients to look for
+	 * @return A map of slots and amounts to consume.
+	 */
+	private Optional<HashMap<Integer, Integer>> getIngredientsToConsume(SummoningInfo info) {
+		HashMap<Integer, Integer> map = new HashMap<>();
 		for (IIngredient reagent : info.getReagents()) {
 			int remaining = reagent.getAmount();
 			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
 				ItemStack slotStack = inventory.getStackInSlot(slot);
 				// Make sure we don't take from the same slot twice without noticing
-				int       available     = slotStack.getCount() - rtn.getOrDefault(slot, 0);
+				int       available     = slotStack.getCount() - map.getOrDefault(slot, 0);
 				if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
-					rtn.merge(slot, Math.min(remaining, available), Integer::sum);
+					map.merge(slot, Math.min(remaining, available), Integer::sum);
 					remaining -= available;
 				}
 			}
 			if (remaining > 0) {
-				rtn.clear();
-				return false;
+				return Optional.empty();
 			}
 		}
-		return true;
+		return Optional.of(map);
 	}
 
 	/**
@@ -194,7 +214,7 @@ public class TileAltar extends TileEntity implements ITickable {
 			return false;
 		if (info.getCatalyst().getAmount() > handStack.getCount())
 			return false;
-		return attemptPopulateSlotsToConsume(info, new HashMap<>());
+		return getIngredientsToConsume(info).isPresent();
 	}
 
 	/**
@@ -294,7 +314,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		summonCountdown = compound.getInteger("summonCountdown");
 		if (compound.hasKey("summonInfo"))
 			summonInfo = SummoningInfo.fromNBT(compound.getCompoundTag("summonInfo"));
-		else if (!isSpawning()) // keep inventory desync'd so render can animate the reagents
+		else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
 			clientInventory.deserializeNBT(compound.getCompoundTag("inventory"));
 
 		super.readFromNBT(compound);
@@ -306,7 +326,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		compound.setTag("inventory", inventory.serializeNBT());
 		compound.setInteger("renderTick", renderTick);
 		compound.setInteger("summonCountdown", summonCountdown);
-		if (isSpawning())
+		if (isSummoning())
 			compound.setTag("summonInfo", summonInfo.serializeNBT());
 		return super.writeToNBT(compound);
 	}
