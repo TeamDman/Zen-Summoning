@@ -30,7 +30,6 @@ minecraft {
     clientRunArgs += "--username=ZenSummoning"
 }
 
-
 repositories {
     mavenCentral()
     maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
