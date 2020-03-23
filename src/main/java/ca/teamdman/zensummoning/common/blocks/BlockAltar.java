@@ -118,9 +118,9 @@ public class BlockAltar extends Block {
 				ZenSummoning.log("Altar onBlockActivated summon " + result.getMessage());
 				playerIn.sendMessage(new TextComponentTranslation(result.getMessage()));
 				if (result.isSuccess()) {
-					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
+					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 0.5f, 0.1f);
 				} else {
-					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);
+					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.1f, 1f);
 				}
 
 			}
@@ -146,9 +146,9 @@ public class BlockAltar extends Block {
 				return;
 
 			if (((TileAltar) tile).attemptWorldSummon().isPresent()) {
-				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 1f, 0.1f);
+				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_FLUTE, SoundCategory.BLOCKS, 0.5f, 0.1f);
 			} else {
-				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 1f, 1f);
+				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.3f, 1f);
 			}
 		}
 	}
