@@ -37,9 +37,11 @@ repositories {
     maven { url "http://maven.blamejared.com/" } // crafttweaker
 }
 dependencies {
-    deobfCompile "mezz.jei:jei_${minecraftVersion}:${jeiVersion}"
-    deobfCompile "mcp.mobius.waila:Hwyla:${hwylaVersion}"
-    compile "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.+"
+
+    def jei_version="4.10.0.198"
+    deobfCompile "mezz.jei:jei_1.12.2:${jei_version}"
+//    deobfCompile "mcp.mobius.waila:Hwyla:${hwylaVersion}"
+    compile "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.15.529"
 }
 
 processResources {
