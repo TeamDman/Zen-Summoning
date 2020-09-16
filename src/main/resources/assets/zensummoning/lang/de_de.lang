@@ -1,0 +1,11 @@
+tile.altar.name=Beschwörungsaltar
+itemGroup.zensummoning=Zen Summoning
+chat.zensummoning.success=Der Altar summt vergnügt.
+chat.zensummoning.busy=Der Altar ist beschäftigt.
+chat.zensummoning.no_match=Der Altar versteht nicht, was du möchtest.
+chat.zensummoning.unsatisfied=Der Altar ist nicht zufrieden.
+jei.zensummoning.recipe.altar=Beschwörungsaltar
+jei.zensummoning.catalyst.lore=Umshalt+Rechtsklick mit dem Katalysator sobald alle Items im Altar sind, um zu beginnen.
+
+jei.zensummoning.recipe.altar.entity=%1$dx %2$s
+# numbered parameters here for example, #xname, 1xOcelot
