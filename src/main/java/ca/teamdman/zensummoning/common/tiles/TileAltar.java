@@ -29,7 +29,6 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -165,17 +164,16 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	 * @return A map of slots and amounts to consume.
 	 */
 	private Optional<HashMap<Integer, Integer>> getIngredientsToConsume(SummoningInfo info) {
-		HashMap<Integer, Integer> map = new HashMap<>();
+		HashMap<Integer, Integer> slotUsage = new HashMap<>();
 		for (IIngredientWithAmount reagent : info.getReagents()) {
 			int remaining = reagent.getAmount();
 			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
 				ItemStack slotStack = inventory.getStackInSlot(slot);
 				// Make sure we don't take from the same slot twice without noticing
-				int available = slotStack.getCount() - map.getOrDefault(slot, 0);
-				//				if (reagent.matches( CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
+				int available = slotStack.getCount() - slotUsage.getOrDefault(slot, 0);
 				if (reagent.getIngredient()
 						   .matches(new MCItemStackMutable(slotStack)) && available > 0) {
-					map.merge(slot, Math.min(remaining, available), Integer::sum);
+					slotUsage.merge(slot, Math.min(remaining, available), Integer::sum);
 					remaining -= available;
 				}
 			}
@@ -183,7 +181,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 				return Optional.empty();
 			}
 		}
-		return Optional.of(map);
+		return Optional.of(slotUsage);
 	}
 
 	/**
@@ -321,8 +319,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 
 		for (MobInfo mobInfo : summonInfo.getMobs()) {
 			for (int i = 0; i < mobInfo.getCount(); i++) {
-				Entity mob = ForgeRegistries.ENTITIES.getValue(mobInfo.getMob())
-													 .create(world);
+				Entity mob = mobInfo.getEntityType().create(world);
 				if (mob == null) {
 					return;
 				}

@@ -112,7 +112,7 @@ public class SummoningInfo {
 		for (MobInfo info : this.mobs) {
 			CompoundNBT mob = new CompoundNBT();
 			mob.putString("mob",
-						  info.getMob()
+						  info.getMobId()
 							  .toString());
 			mob.put("data", info.getData());
 			mob.putInt("x",

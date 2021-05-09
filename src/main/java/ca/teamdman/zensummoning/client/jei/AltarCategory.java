@@ -2,7 +2,10 @@ package ca.teamdman.zensummoning.client.jei;
 
 import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.Registrar;
+import ca.teamdman.zensummoning.common.summoning.MobInfo;
 import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
+import com.blamejared.crafttweaker.api.item.IItemStack;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -10,22 +13,26 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.SpawnEggItem;
 import net.minecraft.util.ResourceLocation;
 
+import java.awt.*;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class AltarCategory implements IRecipeCategory<SummoningInfo> {
 	private final int           HEIGHT = 200;
 	private final int           WIDTH  = 160;
 	private final IDrawable     background;
 	private final IDrawable     icon;
-	private final SummoningInfo summoningInfo;
 
 
-	public AltarCategory(IGuiHelper guiHelper, SummoningInfo summoningInfo) {
-		this.summoningInfo = summoningInfo;
+	public AltarCategory(IGuiHelper guiHelper) {
 		this.background = guiHelper.createBlankDrawable(WIDTH, HEIGHT);
 		this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registrar.Blocks.ALTAR));
 	}
@@ -57,13 +64,26 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 
 	@Override
 	public void setIngredients(SummoningInfo summoningInfo, IIngredients ingredients) {
-		ingredients.setInputLists(
-				VanillaTypes.ITEM,
-				Arrays.asList(
-						summoningInfo.getReagents(),
-						summoningInfo.getCatalyst()
-				)
-		);
+		List<ItemStack> inputs = Stream.concat(summoningInfo.getReagents()
+															.stream(), Stream.of(summoningInfo.getCatalyst()))
+									   .flatMap(x -> Arrays.stream(x.getIngredient()
+																	.getItems()))
+									   .map(IItemStack::getInternal)
+									   .collect(Collectors.toList());
+
+		List<ItemStack> outputs = Stream.concat(Arrays.stream(summoningInfo.getCatalyst()
+																		   .getIngredient()
+																		   .getItems())
+													  .map(IItemStack::getInternal),
+												summoningInfo.getMobs()
+															 .stream()
+															 .map(MobInfo::getEntityType)
+															 .map(SpawnEggItem::getEgg)
+															 .map(ItemStack::new))
+										.collect(Collectors.toList());
+
+		ingredients.setInputs(VanillaTypes.ITEM, inputs);
+		ingredients.setOutputs(VanillaTypes.ITEM, outputs);
 	}
 
 	@Override
@@ -84,5 +104,22 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 		guiItemStacks.set(ingredients);
 		guiItemStacks.init(++i, false, WIDTH / 2 - 8, HEIGHT / 2 - 8);
 		guiItemStacks.set(i, new ItemStack(Registrar.Blocks.ALTAR));
+	}
+
+	@Override
+	public void draw(SummoningInfo summonInfo, MatrixStack matrixStack, double mouseX, double mouseY) {
+		int       i         = 0;
+		Minecraft minecraft = Minecraft.getInstance();
+		for (MobInfo mob : summonInfo.getMobs())
+			minecraft.fontRenderer.drawString(matrixStack,
+											  I18n.format("jei.zensummoning.recipe.altar.entity",
+														  mob.getCount(),
+														  I18n.format(mob.getEntityType()
+																		 .getTranslationKey())),
+											  0,
+											  40 + 9 * i++,
+											  Color.GRAY.getRGB());
+		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.isCatalystConsumed", summonInfo.isCatalystConsumed()), 0, 40 + 9 * i++, Color.GRAY.getRGB());
+		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.weight", summonInfo.getWeight()), 0, 40 + 9 * i++, Color.GRAY.getRGB());
 	}
 }

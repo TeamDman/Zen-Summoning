@@ -3,9 +3,11 @@ package ca.teamdman.zensummoning.common.summoning;
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
 import com.blamejared.crafttweaker.api.data.IData;
+import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.openzen.zencode.java.ZenCodeType;
 import org.openzen.zencode.java.ZenCodeType.Method;
 
@@ -57,8 +59,12 @@ public class MobInfo {
 		return this;
 	}
 
-	public ResourceLocation getMob() {
+	public ResourceLocation getMobId() {
 		return mob;
+	}
+
+	public EntityType<?> getEntityType() {
+		return ForgeRegistries.ENTITIES.getValue(mob);
 	}
 
 	@Method
