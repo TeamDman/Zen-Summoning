@@ -1,38 +1,42 @@
 package ca.teamdman.zensummoning.common.tiles;
 
 import ca.teamdman.zensummoning.ZenSummoning;
+import ca.teamdman.zensummoning.common.Registrar;
 import ca.teamdman.zensummoning.common.summoning.MobInfo;
 import ca.teamdman.zensummoning.common.summoning.SummoningAttempt;
 import ca.teamdman.zensummoning.common.summoning.SummoningDirector;
 import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
 import ca.teamdman.zensummoning.util.WeightedRandomBag;
+import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
+import com.blamejared.crafttweaker.impl.item.MCItemStackMutable;
 import com.google.common.collect.ImmutableList;
-import crafttweaker.api.item.IIngredient;
-import crafttweaker.api.minecraft.CraftTweakerMC;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Optional;
 
-public class TileAltar extends TileEntity implements ITickable {
+public class TileAltar extends TileEntity implements ITickableTileEntity {
 	public final  int              TIME_TO_SPAWN   = 5 * 20;
 	private final ItemStackHandler clientInventory = new ItemStackHandler();
 	private final ItemStackHandler inventory       = new ItemStackHandler(SummoningDirector.getStackLimit()) {
@@ -47,79 +51,23 @@ public class TileAltar extends TileEntity implements ITickable {
 	private       int              summonCountdown = -1;
 	private       SummoningInfo    summonInfo;
 
-	@Override
-	public void update() {
-		if (!isSummoning()) {
-			if (renderTick > -1)
-				renderTick--;
-			return;
-		}
-
-		summonCountdown--;
-		renderTick++;
-
-		if (summonCountdown > 0)
-			return;
-		summonFinish();
+	public TileAltar() {
+		//noinspection ConstantConditions
+		super(Registrar.Tiles.ALTAR);
 	}
 
 	/**
-	 * Determines whether or not the altar is in the middle of spawning an entity.
-	 *
-	 * @return isSpawning
+	 * Attempt to perform a summoning, detecting the catalyst as a dropped item in the world.
+	 * Only a successful attempt returns a non-empty value.
 	 */
-	public boolean isSummoning() {
-		return summonInfo != null && summonCountdown >= 0;
-	}
-
-	/**
-	 * Spawns the current {@link SummoningInfo} into the world
-	 */
-	private void summonFinish() {
-		ZenSummoning.log("summonFinish");
-		summonCountdown = -1;
-		if (world.isRemote) {
-			summonInfo = null;
-			return;
+	public Optional<SummoningAttempt> attemptWorldSummon() {
+		final AxisAlignedBB itemRange = new AxisAlignedBB(-1, -1, -1, 1, 1, 1).offset(pos);
+		for (ItemEntity ent : world.getEntitiesWithinAABB(ItemEntity.class, itemRange)) {
+			SummoningAttempt attempt = attemptSummon(ent.getItem());
+			if (attempt.isSuccess())
+				return Optional.of(attempt);
 		}
-
-		for (MobInfo mobInfo : summonInfo.getMobs()) {
-			for (int i = 0; i < mobInfo.getCount(); i++) {
-				Entity mob = EntityList.createEntityByIDFromName(mobInfo.getMob(), world);
-				if (mob == null) {
-					return;
-				}
-				mob.readFromNBT(mobInfo.getData());
-				mob.setPosition(
-						getPos().getX() + mobInfo.getOffset().getX() + world.rand.nextInt(Math.abs(mobInfo.getSpread().getX() * 2)+1) - Math.abs(mobInfo.getSpread().getX()),
-						getPos().getY() + mobInfo.getOffset().getY() + world.rand.nextInt(Math.abs(mobInfo.getSpread().getY() * 2)+1) - Math.abs(mobInfo.getSpread().getY()),
-						getPos().getZ() + mobInfo.getOffset().getZ() + world.rand.nextInt(Math.abs(mobInfo.getSpread().getZ() * 2)+1) - Math.abs(mobInfo.getSpread().getZ())
-				);
-				world.spawnEntity(mob);
-			}
-		}
-
-		summonInfo = null;
-
-		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.EVOCATION_ILLAGER_PREPARE_WOLOLO, SoundCategory.BLOCKS, 0.5f, 1f);
-
-	}
-
-	/**
-	 * Attempts to pick a summoning info for the given catalyst.
-	 */
-	private Optional<SummoningInfo> getSummonInfo(ItemStack catalyst) {
-		WeightedRandomBag<SummoningInfo> bag = new WeightedRandomBag<>();
-		SummoningDirector.getSummonInfos().stream()
-				.filter(x -> meetsCriteria(x, catalyst))
-				.forEach(x -> bag.addEntry(x, x.getWeight()));
-
-		if (bag.isEmpty()) {
-			return Optional.empty();
-		} else {
-			return Optional.of(bag.getRandom());
-		}
+		return Optional.empty();
 	}
 
 	/**
@@ -129,7 +77,7 @@ public class TileAltar extends TileEntity implements ITickable {
 	 */
 	public SummoningAttempt attemptSummon(ItemStack catalyst) {
 		ZenSummoning.log("summonStart");
-		SummoningAttempt attempt = new SummoningAttempt(CraftTweakerMC.getIWorld(this.world), CraftTweakerMC.getIBlockPos(this.pos));
+		SummoningAttempt attempt = new SummoningAttempt(this.world, this.pos);
 		if (isSummoning()) {
 			attempt.setSuccess(false);
 			attempt.setMessage("chat.zensummoning.busy");
@@ -137,7 +85,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		}
 
 		Optional<SummoningInfo> infoMatch = getSummonInfo(catalyst);
-		if (!infoMatch.isPresent()){
+		if (!infoMatch.isPresent()) {
 			attempt.setSuccess(false);
 			attempt.setMessage(getAssumedErrorMessage(catalyst));
 			return attempt;
@@ -151,29 +99,62 @@ public class TileAltar extends TileEntity implements ITickable {
 			return attempt;
 		}
 
-		info.getMutator().accept(attempt);
+		info.getMutator()
+			.accept(attempt);
 		if (!attempt.isSuccess())
 			return attempt;
 
 		beginSummoning(info);
-		slotsMatch.get().forEach((slot, count) -> inventory.extractItem(slot, count, false));
+		slotsMatch.get()
+				  .forEach((slot, count) -> inventory.extractItem(slot, count, false));
 		if (info.isCatalystConsumed())
-			catalyst.shrink(info.getCatalyst().getAmount());
+			catalyst.shrink(info.getCatalyst()
+								.getAmount());
 		return attempt;
 	}
 
 	/**
-	 * Attempt to perform a summoning, detecting the catalyst as a dropped item in the world.
-	 * Only a successful attempt returns a non-empty value.
+	 * Determines whether or not the altar is in the middle of spawning an entity.
+	 *
+	 * @return isSpawning
 	 */
-	public Optional<SummoningAttempt> attemptWorldSummon() {
-		final AxisAlignedBB itemRange = new AxisAlignedBB(-1,-1,-1,1,1,1).offset(pos);
-		for (EntityItem ent : world.getEntitiesWithinAABB(EntityItem.class, itemRange)) {
-			SummoningAttempt attempt = attemptSummon(ent.getItem());
-			if (attempt.isSuccess())
-				return Optional.of(attempt);
+	public boolean isSummoning() {
+		return summonInfo != null && summonCountdown >= 0;
+	}
+
+	/**
+	 * Attempts to pick a summoning info for the given catalyst.
+	 */
+	private Optional<SummoningInfo> getSummonInfo(ItemStack catalyst) {
+		WeightedRandomBag<SummoningInfo> bag = new WeightedRandomBag<>();
+		SummoningDirector.getSummonInfos()
+						 .stream()
+						 .filter(x -> meetsCriteria(x, catalyst))
+						 .forEach(x -> bag.addEntry(x, x.getWeight()));
+
+		if (bag.isEmpty()) {
+			return Optional.empty();
+		} else {
+			return Optional.of(bag.getRandom());
 		}
-		return Optional.empty();
+	}
+
+	/**
+	 * Checks if a given info meets all criteria for summoning.
+	 *
+	 * @param info      info to check
+	 * @param handStack player's held stack
+	 * @return info's constraints satisfied
+	 */
+	private boolean meetsCriteria(SummoningInfo info, ItemStack handStack) {
+		if (!info.getCatalyst()
+				 .getIngredient()
+				 .matches(new MCItemStackMutable(handStack)))
+			return false;
+		if (info.getCatalyst()
+				.getAmount() > handStack.getCount())
+			return false;
+		return getIngredientsToConsume(info).isPresent();
 	}
 
 	/**
@@ -185,13 +166,15 @@ public class TileAltar extends TileEntity implements ITickable {
 	 */
 	private Optional<HashMap<Integer, Integer>> getIngredientsToConsume(SummoningInfo info) {
 		HashMap<Integer, Integer> map = new HashMap<>();
-		for (IIngredient reagent : info.getReagents()) {
+		for (IIngredientWithAmount reagent : info.getReagents()) {
 			int remaining = reagent.getAmount();
 			for (int slot = 0; slot < inventory.getSlots() && remaining > 0; slot++) {
 				ItemStack slotStack = inventory.getStackInSlot(slot);
 				// Make sure we don't take from the same slot twice without noticing
-				int       available     = slotStack.getCount() - map.getOrDefault(slot, 0);
-				if (reagent.matches(CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
+				int available = slotStack.getCount() - map.getOrDefault(slot, 0);
+				//				if (reagent.matches( CraftTweakerMC.getIItemStack(slotStack)) && available > 0) {
+				if (reagent.getIngredient()
+						   .matches(new MCItemStackMutable(slotStack)) && available > 0) {
 					map.merge(slot, Math.min(remaining, available), Integer::sum);
 					remaining -= available;
 				}
@@ -204,31 +187,21 @@ public class TileAltar extends TileEntity implements ITickable {
 	}
 
 	/**
-	 * Checks if a given info meets all criteria for summoning.
-	 * @param info info to check
-	 * @param handStack player's held stack
-	 * @return info's constraints satisfied
-	 */
-	private boolean meetsCriteria(SummoningInfo info, ItemStack handStack) {
-		if (!info.getCatalyst().matches(CraftTweakerMC.getIItemStack(handStack)))
-			return false;
-		if (info.getCatalyst().getAmount() > handStack.getCount())
-			return false;
-		return getIngredientsToConsume(info).isPresent();
-	}
-
-	/**
 	 * Assuming that there's no valid summoning, get the most likely error message.
+	 *
 	 * @param handStack player's held stack
 	 * @return unlocalized error message
 	 */
 	private String getAssumedErrorMessage(ItemStack handStack) {
-		String msg = "chat.zensummoning.no_match";
-		int mask = 0;
+		String msg  = "chat.zensummoning.no_match";
+		int    mask = 0;
 		for (SummoningInfo info : SummoningDirector.getSummonInfos()) {
-			if (info.getCatalyst().amount(1).matches(CraftTweakerMC.getIItemStack(handStack))) {
+			if (info.getCatalyst()
+					.getIngredient()
+					.matches(new MCItemStackMutable(handStack))) {
 				mask |= 0x01; // we found a matching catalyst, unknown if hand quantity satisfies
-				if (info.getCatalyst().getAmount() < handStack.getCount()) {
+				if (info.getCatalyst()
+						.getAmount() < handStack.getCount()) {
 					mask |= 0x10; // we found a matching catalyst, knowing hand quantity satisfies
 				}
 			}
@@ -247,7 +220,7 @@ public class TileAltar extends TileEntity implements ITickable {
 		this.renderTick = 0;
 
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ILLAGER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
+		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_EVOKER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
 	}
 
 	/**
@@ -284,7 +257,7 @@ public class TileAltar extends TileEntity implements ITickable {
 	 *
 	 * @return The inventory of the block on the client side.
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public ImmutableList<ItemStack> getClientStacks() {
 		return getStacksFromInventory(clientInventory);
 	}
@@ -307,63 +280,115 @@ public class TileAltar extends TileEntity implements ITickable {
 	}
 
 
+	@Nonnull
 	@Override
-	public void readFromNBT(NBTTagCompound compound) {
-		inventory.deserializeNBT(compound.getCompoundTag("inventory"));
-		renderTick = compound.getInteger("renderTick");
-		summonCountdown = compound.getInteger("summonCountdown");
-		if (compound.hasKey("summonInfo"))
-			summonInfo = SummoningInfo.fromNBT(compound.getCompoundTag("summonInfo"));
-		else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
-			clientInventory.deserializeNBT(compound.getCompoundTag("inventory"));
-
-		super.readFromNBT(compound);
+	public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
+		return cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY ? LazyOptional.of(() -> (T) inventory) : super.getCapability(cap, side);
 	}
+
+	@Override
+	public void tick() {
+		if (!isSummoning()) {
+			if (renderTick > -1)
+				renderTick--;
+			return;
+		}
+
+		summonCountdown--;
+		renderTick++;
+
+		if (summonCountdown > 0)
+			return;
+		summonFinish();
+	}	@Nullable
+	@Override
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT comp = new CompoundNBT();
+		write(comp);
+		return new SUpdateTileEntityPacket(pos, 255, comp);
+	}
+
+	/**
+	 * Spawns the current {@link SummoningInfo} into the world
+	 */
+	private void summonFinish() {
+		ZenSummoning.log("summonFinish");
+		summonCountdown = -1;
+		if (world.isRemote) {
+			summonInfo = null;
+			return;
+		}
+
+		for (MobInfo mobInfo : summonInfo.getMobs()) {
+			for (int i = 0; i < mobInfo.getCount(); i++) {
+				Entity mob = ForgeRegistries.ENTITIES.getValue(mobInfo.getMob())
+													 .create(world);
+				if (mob == null) {
+					return;
+				}
+				mob.deserializeNBT(mobInfo.getData());
+				mob.setPosition(getPos().getX() + mobInfo.getOffset()
+														 .getX() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+																									  .getX() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																																		  .getX()),
+								getPos().getY() + mobInfo.getOffset()
+														 .getY() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+																									  .getY() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																																		  .getY()),
+								getPos().getZ() + mobInfo.getOffset()
+														 .getZ() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+																									  .getZ() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																																		  .getZ()));
+				System.out.printf("%s\n", mob.getPosition());
+				world.addEntity(mob);
+			}
+		}
+
+		summonInfo = null;
+
+		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO, SoundCategory.BLOCKS, 0.5f, 1f);
+
+	}
+
+
 
 	@SuppressWarnings("NullableProblems")
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-		compound.setTag("inventory", inventory.serializeNBT());
-		compound.setInteger("renderTick", renderTick);
-		compound.setInteger("summonCountdown", summonCountdown);
+	public CompoundNBT write(CompoundNBT compound) {
+		compound.put("inventory", inventory.serializeNBT());
+		compound.putInt("renderTick", renderTick);
+		compound.putInt("summonCountdown", summonCountdown);
 		if (isSummoning())
-			compound.setTag("summonInfo", summonInfo.serializeNBT());
-		return super.writeToNBT(compound);
+			compound.put("summonInfo", summonInfo.serializeNBT());
+		return super.write(compound);
 	}
 
-	@Nullable
-	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound comp = new NBTTagCompound();
-		writeToNBT(comp);
-		return new SPacketUpdateTileEntity(pos, 255, comp);
-	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+	public CompoundNBT getUpdateTag() {
+		return write(new CompoundNBT());
+	}
+
+
+	@Override
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
 		super.onDataPacket(net, pkt);
-		readFromNBT(pkt.getNbtCompound());
+		deserializeNBT(pkt.getNbtCompound());
 	}
 
 	@Override
-	public NBTTagCompound getUpdateTag() {
-		return writeToNBT(new NBTTagCompound());
+	public void deserializeNBT(CompoundNBT nbt) {
+		inventory.deserializeNBT(nbt.getCompound("inventory"));
+		renderTick = nbt.getInt("renderTick");
+		summonCountdown = nbt.getInt("summonCountdown");
+		if (nbt.contains("summonInfo", Constants.NBT.TAG_COMPOUND))
+			summonInfo = SummoningInfo.fromNBT(nbt.getCompound("summonInfo"));
+		else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
+			clientInventory.deserializeNBT(nbt.getCompound("inventory"));
+
+		super.deserializeNBT(nbt);
 	}
 
-	@Override
-	public void handleUpdateTag(NBTTagCompound tag) {
-		super.handleUpdateTag(tag);
-	}
 
-	@Override
-	public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {
-		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Nullable
-	@Override
-	public <T> T getCapability(@Nullable Capability<T> capability, @Nullable EnumFacing facing) {
-		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY ? (T) inventory : super.getCapability(capability, facing);
-	}
 }

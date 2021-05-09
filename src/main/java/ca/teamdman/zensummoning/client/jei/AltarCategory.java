@@ -2,28 +2,42 @@ package ca.teamdman.zensummoning.client.jei;
 
 import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.Registrar;
-import mezz.jei.api.IGuiHelper;
-import mezz.jei.api.gui.IDrawable;
-import mezz.jei.api.gui.IGuiItemStackGroup;
+import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
+import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
+import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.recipe.IRecipeCategory;
+import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 
-import java.util.List;
+import java.util.Arrays;
 
-class AltarCategory implements IRecipeCategory<AltarRecipe> {
-	private final IDrawable background;
-	private final int WIDTH = 160;
-	private final int HEIGHT = 200;
-	public AltarCategory(IGuiHelper guiHelper) {
-		background = guiHelper.createBlankDrawable(WIDTH, HEIGHT);
+class AltarCategory implements IRecipeCategory<SummoningInfo> {
+	private final int           HEIGHT = 200;
+	private final int           WIDTH  = 160;
+	private final IDrawable     background;
+	private final IDrawable     icon;
+	private final SummoningInfo summoningInfo;
+
+
+	public AltarCategory(IGuiHelper guiHelper, SummoningInfo summoningInfo) {
+		this.summoningInfo = summoningInfo;
+		this.background = guiHelper.createBlankDrawable(WIDTH, HEIGHT);
+		this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registrar.Blocks.ALTAR));
 	}
 
 	@Override
-	public String getUid() {
+	public ResourceLocation getUid() {
 		return ZenSummoning.JEI_CATEGORY;
+	}
+
+	@Override
+	public Class<SummoningInfo> getRecipeClass() {
+		return SummoningInfo.class;
 	}
 
 	@Override
@@ -32,31 +46,43 @@ class AltarCategory implements IRecipeCategory<AltarRecipe> {
 	}
 
 	@Override
-	public String getModName() {
-		return ZenSummoning.MOD_NAME;
-	}
-
-	@Override
 	public IDrawable getBackground() {
 		return background;
 	}
 
 	@Override
-	public void setRecipe(IRecipeLayout recipeLayout, AltarRecipe recipeWrapper, IIngredients ingredients) {
-		IGuiItemStackGroup    guiItemStacks = recipeLayout.getItemStacks();
-		List<List<ItemStack>> inputs        = ingredients.getInputs(ItemStack.class);
-		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT/2 - 24);
-		int i;
-		final double dist = 25 + inputs.size()*2;
-		final double cut = (Math.PI * 2 / (inputs.size()-1));
-		for (i=0; i < inputs.size()-1; i++) {
-			double x = Math.cos(cut * i)*dist;
-			double y = Math.sin(cut * i)*dist;
-			guiItemStacks.init(i+1, true, WIDTH / 2 - 8 + (int) x, HEIGHT / 2 - 8 + (int) y);
+	public IDrawable getIcon() {
+		return icon;
+	}
+
+	@Override
+	public void setIngredients(SummoningInfo summoningInfo, IIngredients ingredients) {
+		ingredients.setInputLists(
+				VanillaTypes.ITEM,
+				Arrays.asList(
+						summoningInfo.getReagents(),
+						summoningInfo.getCatalyst()
+				)
+		);
+	}
+
+	@Override
+	public void setRecipe(IRecipeLayout recipeLayout, SummoningInfo summoningInfo, IIngredients ingredients) {
+		IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
+		//		List<List<ItemStack>> inputs        = ingredients.getInputs(summoningInfo);
+		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT / 2 - 24);
+		int size = summoningInfo.getReagents()
+								.size();
+		int          i;
+		final double dist = 25 + size * 2;
+		final double cut  = (Math.PI * 2 / (size - 1));
+		for (i = 0; i < size - 1; i++) {
+			double x = Math.cos(cut * i) * dist;
+			double y = Math.sin(cut * i) * dist;
+			guiItemStacks.init(i + 1, true, WIDTH / 2 - 8 + (int) x, HEIGHT / 2 - 8 + (int) y);
 		}
 		guiItemStacks.set(ingredients);
-		guiItemStacks.init(++i, false, WIDTH / 2 - 8, HEIGHT/2 - 8);
+		guiItemStacks.init(++i, false, WIDTH / 2 - 8, HEIGHT / 2 - 8);
 		guiItemStacks.set(i, new ItemStack(Registrar.Blocks.ALTAR));
-
 	}
 }

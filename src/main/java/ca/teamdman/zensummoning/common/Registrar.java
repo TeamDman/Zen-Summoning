@@ -1,52 +1,57 @@
 package ca.teamdman.zensummoning.common;
 
 import ca.teamdman.zensummoning.ZenSummoning;
-import ca.teamdman.zensummoning.common.blocks.BlockAltar;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.block.Block;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.registries.ObjectHolder;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
+@Mod.EventBusSubscriber(modid = ZenSummoning.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registrar {
-	private static final Multimap<EntryType, Block> blocks = ArrayListMultimap.create();
-	public static final  Multimap<EntryType, Item>  items  = ArrayListMultimap.create();
-	public enum EntryType {
-		NEEDS_DEFAULT_ITEMBLOCK,
-		DEFAULT
+	public static final ItemGroup group = new ItemGroup(-1, "sfm") {
+		@Override
+		public ItemStack createIcon() {
+			return new ItemStack(Blocks.ALTAR);
+		}
+	};
+
+	@SubscribeEvent
+	public static void onRegisterTileEntityTypes(@Nonnull final RegistryEvent.Register<TileEntityType<?>> e) {
+		e.getRegistry()
+		 .register(TileEntityType.Builder.create(TileAltar::new, Blocks.ALTAR)
+										 .build(null)
+										 .setRegistryName(ZenSummoning.MOD_ID, "altar"));
 	}
 
-	@GameRegistry.ObjectHolder(ZenSummoning.MOD_ID)
-	public static class Blocks {
-		public static final Block ALTAR = net.minecraft.init.Blocks.AIR;
+	@SubscribeEvent
+	public static void onRegisterItems(final RegistryEvent.Register<Item> e) {
+		Item altar = new BlockItem(Blocks.ALTAR, new Item.Properties().group(group)).setRegistryName(ZenSummoning.MOD_ID, "altar");
+		e.getRegistry()
+		 .register(altar);
+		ZenSummoning.PROXY.fillItemGroup(group, altar);
 	}
 
-	@Mod.EventBusSubscriber(modid = ZenSummoning.MOD_ID)
-	private static class ObjectRegistryHandler {
-		@SubscribeEvent
-		public static void addItems(RegistryEvent.Register<Item> event) {
-           /*
-             event.getRegistry().register(new ItemBlock(Blocks.myBlock).setRegistryName(MOD_ID, "myBlock"));
-             event.getRegistry().register(new MySpecialItem().setRegistryName(MOD_ID, "mySpecialItem"));
-            */
-			blocks.values().forEach(b -> items.put(EntryType.DEFAULT,
-					new ItemBlock(b)
-							.setRegistryName(Objects.requireNonNull(b.getRegistryName()))
-							.setCreativeTab(ZenSummoning.CREATIVE_TAB))
-			);
-			items.values().forEach(event.getRegistry()::register);
-		}
+	@ObjectHolder(ZenSummoning.MOD_ID)
+	public static final class Blocks {
+		public static final Block ALTAR = null;
+	}
 
-		@SubscribeEvent
-		public static void addBlocks(RegistryEvent.Register<Block> event) {
-			blocks.put(EntryType.NEEDS_DEFAULT_ITEMBLOCK, new BlockAltar());
-			blocks.values().forEach(event.getRegistry()::register);
-		}
+	@ObjectHolder(ZenSummoning.MOD_ID)
+	public static class Items {
+		public static final Item ALTAR = null;
+	}
+
+	@ObjectHolder(ZenSummoning.MOD_ID)
+	public static final class Tiles {
+		public static final TileEntityType<TileAltar> ALTAR = null;
 	}
 }

@@ -2,56 +2,50 @@ package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.Mutator;
-import crafttweaker.annotations.ZenRegister;
-import crafttweaker.api.item.IIngredient;
-import crafttweaker.api.item.IngredientUnknown;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import com.blamejared.crafttweaker.api.annotations.ZenRegister;
+import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenMethod;
+import org.openzen.zencode.java.ZenCodeType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@ZenClass(ZenSummoning.ZEN_PACKAGE + ".SummoningInfo")
+@ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".SummoningInfo")
 @ZenRegister
 public class SummoningInfo {
-	private IIngredient               catalyst        = IngredientUnknown.INSTANCE;
+	//	private IIngredientWithAmount               catalyst        = IngredientUnknown.INSTANCE;
+	private IIngredientWithAmount               catalyst        = null;
 	private boolean                   consumeCatalyst = true;
 	private List<MobInfo>             mobs            = new ArrayList<>();
 	private Mutator<SummoningAttempt> mutator         = (__) -> {
 	};
-	private List<IIngredient>         reagents        = new ArrayList<>();
-	private double weight = 1;
+	private List<IIngredientWithAmount>         reagents        = new ArrayList<>();
+	private double                    weight          = 1;
 
 	private SummoningInfo() {
 	}
 
-	public static SummoningInfo fromNBT(NBTTagCompound compound) {
+	public static SummoningInfo fromNBT(CompoundNBT compound) {
 		SummoningInfo info = new SummoningInfo();
-		NBTTagList    mobs = compound.getTagList("mobs", 10); // get NBTTagList<NBTTagCompound>
-		for (int i = 0; i < mobs.tagCount(); i++) {
-			NBTTagCompound mob = mobs.getCompoundTagAt(i);
-			info.addMob(new MobInfo(
-					mob.getCompoundTag("data"),
-					new ResourceLocation(mob.getString("mob")),
-					new BlockPos(mob.getInteger("x"), mob.getInteger("y"), mob.getInteger("z")),
-					new BlockPos(mob.getInteger("dx"), mob.getInteger("dy"), mob.getInteger("dz"))
-			));
+		ListNBT       mobs = compound.getList("mobs", 10); // get ListNBT<CompoundNBT>
+		for (int i = 0; i < mobs.size(); i++) {
+			CompoundNBT mob = mobs.getCompound(i);
+			info.addMob(new MobInfo(mob.getCompound("data"), new ResourceLocation(mob.getString("mob")), new BlockPos(mob.getInt("x"), mob.getInt("y"), mob.getInt("z")), new BlockPos(mob.getInt("dx"), mob.getInt("dy"), mob.getInt("dz"))));
 		}
 		return info;
 	}
 
-	@ZenMethod
+	@ZenCodeType.Method
 	public SummoningInfo addMob(MobInfo info) {
 		this.mobs.add(info);
 		return this;
 	}
 
-	@ZenMethod
+	@ZenCodeType.Method
 	public static SummoningInfo create() {
 		return new SummoningInfo();
 	}
@@ -60,23 +54,23 @@ public class SummoningInfo {
 		return weight;
 	}
 
-	@ZenMethod
+	@ZenCodeType.Method
 	public SummoningInfo setWeight(double weight) {
 		this.weight = weight;
 		return this;
 	}
 
-	public IIngredient getCatalyst() {
+	public IIngredientWithAmount getCatalyst() {
 		return catalyst;
 	}
 
-	@ZenMethod
-	public SummoningInfo setCatalyst(IIngredient ingredient) {
+	@ZenCodeType.Method
+	public SummoningInfo setCatalyst(IIngredientWithAmount ingredient) {
 		this.catalyst = ingredient;
 		return this;
 	}
 
-	@ZenMethod
+	@ZenCodeType.Method
 	public SummoningInfo setConsumeCatalyst(boolean value) {
 		this.consumeCatalyst = value;
 		return this;
@@ -91,12 +85,12 @@ public class SummoningInfo {
 		return Collections.unmodifiableList(mobs);
 	}
 
-	public List<IIngredient> getReagents() {
+	public List<IIngredientWithAmount> getReagents() {
 		return Collections.unmodifiableList(reagents);
 	}
 
-	@ZenMethod
-	public SummoningInfo setReagents(IIngredient[] reagents) {
+	@ZenCodeType.Method
+	public SummoningInfo setReagents(IIngredientWithAmount[] reagents) {
 		this.reagents.clear();
 		Collections.addAll(this.reagents, reagents);
 		return this;
@@ -106,28 +100,42 @@ public class SummoningInfo {
 		return mutator;
 	}
 
-	@ZenMethod
+	@ZenCodeType.Method
 	public SummoningInfo setMutator(Mutator<SummoningAttempt> mutator) {
 		this.mutator = mutator;
 		return this;
 	}
 
-	public NBTTagCompound serializeNBT() {
-		NBTTagCompound compound = new NBTTagCompound();
-		NBTTagList     mobs     = new NBTTagList();
+	public CompoundNBT serializeNBT() {
+		CompoundNBT compound = new CompoundNBT();
+		ListNBT     mobs     = new ListNBT();
 		for (MobInfo info : this.mobs) {
-			NBTTagCompound mob = new NBTTagCompound();
-			mob.setString("mob", info.getMob().toString());
-			mob.setTag("data", info.getData());
-			mob.setInteger("x", info.getOffset().getX());
-			mob.setInteger("y", info.getOffset().getY());
-			mob.setInteger("z", info.getOffset().getZ());
-			mob.setInteger("dx", info.getSpread().getX());
-			mob.setInteger("dy", info.getSpread().getY());
-			mob.setInteger("dz", info.getSpread().getZ());
-			mobs.appendTag(mob);
+			CompoundNBT mob = new CompoundNBT();
+			mob.putString("mob",
+						  info.getMob()
+							  .toString());
+			mob.put("data", info.getData());
+			mob.putInt("x",
+					   info.getOffset()
+						   .getX());
+			mob.putInt("y",
+					   info.getOffset()
+						   .getY());
+			mob.putInt("z",
+					   info.getOffset()
+						   .getZ());
+			mob.putInt("dx",
+					   info.getSpread()
+						   .getX());
+			mob.putInt("dy",
+					   info.getSpread()
+						   .getY());
+			mob.putInt("dz",
+					   info.getSpread()
+						   .getZ());
+			mobs.add(mob);
 		}
-		compound.setTag("mobs", mobs);
+		compound.put("mobs", mobs);
 		return compound;
 	}
 

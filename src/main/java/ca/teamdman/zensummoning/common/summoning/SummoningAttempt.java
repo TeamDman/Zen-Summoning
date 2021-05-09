@@ -1,52 +1,52 @@
 package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
-import crafttweaker.annotations.ZenRegister;
-import crafttweaker.api.world.IBlockPos;
-import crafttweaker.api.world.IWorld;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenGetter;
-import stanhebben.zenscript.annotations.ZenSetter;
+import com.blamejared.crafttweaker.api.annotations.ZenRegister;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IWorld;
+import org.openzen.zencode.java.ZenCodeType;
+import org.openzen.zencode.java.ZenCodeType.Getter;
+import org.openzen.zencode.java.ZenCodeType.Setter;
 
 @ZenRegister
-@ZenClass(ZenSummoning.ZEN_PACKAGE + ".SummoningAttempt")
+@ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".SummoningAttempt")
 public class SummoningAttempt {
-	private       String    message = "chat.zensummoning.success";
-	private final IBlockPos pos;
-	private       boolean   success = true;
-	private final IWorld    world;
+	private final BlockPos pos;
+	private final IWorld   world;
+	private       String   message = "chat.zensummoning.success";
+	private       boolean  success = true;
 
-	public SummoningAttempt(IWorld world, IBlockPos pos) {
+	public SummoningAttempt(IWorld world, BlockPos pos) {
 		this.world = world;
 		this.pos = pos;
 	}
 
-	@ZenGetter("message")
+	@ZenCodeType.Getter("message")
 	public String getMessage() {
 		return message;
 	}
 
-	@ZenSetter("message")
+	@Setter("message")
 	public void setMessage(String message) {
 		this.message = message;
 	}
 
-	@ZenGetter("pos")
-	public IBlockPos getPos() {
+	@Getter("pos")
+	public BlockPos getPos() {
 		return pos;
 	}
 
-	@ZenGetter("success")
+	@Getter("success")
 	public boolean isSuccess() {
 		return success;
 	}
 
-	@ZenSetter("success")
+	@Setter("success")
 	public void setSuccess(boolean success) {
 		this.success = success;
 	}
 
-	@ZenGetter("world")
+	@Getter("world")
 	public IWorld getWorld() {
 		return world;
 	}
