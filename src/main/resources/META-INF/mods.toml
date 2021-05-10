@@ -1,0 +1,32 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+modLoader="javafml"
+loaderVersion="[26,)"
+license="Mozilla Public Licence, v. 2.0"
+issueTrackerURL="https://github.com/TeamDman/Zen-Summoning/issues"
+[[mods]]
+  modId="zensummoning"
+  version="${file.jarVersion}"
+  displayName="Zen Summoning"
+  #updateJSONURL="http://myurl.me/"
+  displayURL="https://minecraft.curseforge.com/projects/zen-summoning"
+  logoFile="zensummoning.png"
+  credits="Thanks to Jared, kindlich, and Silk for their help with CraftTweaker."
+  authors="TeamDman"
+  description='''
+Adds an altar for summoning mobs.
+'''
+[[dependencies.zensummoning]]
+    modId="forge"
+    mandatory=true
+    versionRange="[27,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.zensummoning]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16,1.17)"
+    ordering="NONE"
+    side="BOTH"

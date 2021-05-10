@@ -1,6 +1,7 @@
 package ca.teamdman.zensummoning.common;
 
 import ca.teamdman.zensummoning.ZenSummoning;
+import ca.teamdman.zensummoning.common.blocks.BlockAltar;
 import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -17,7 +18,7 @@ import javax.annotation.Nonnull;
 
 @Mod.EventBusSubscriber(modid = ZenSummoning.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registrar {
-	public static final ItemGroup group = new ItemGroup(-1, "sfm") {
+	public static final ItemGroup group = new ItemGroup(-1, "zensummoning") {
 		@Override
 		public ItemStack createIcon() {
 			return new ItemStack(Blocks.ALTAR);
@@ -38,6 +39,11 @@ public class Registrar {
 		e.getRegistry()
 		 .register(altar);
 		ZenSummoning.PROXY.fillItemGroup(group, altar);
+	}
+
+	@SubscribeEvent
+	public static void onRegisterBlocks(final RegistryEvent.Register<Block> e) {
+		e.getRegistry().register(new BlockAltar());
 	}
 
 	@ObjectHolder(ZenSummoning.MOD_ID)

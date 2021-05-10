@@ -1,5 +1,5 @@
 {
   "variants": {
-    "normal": {"model": "zensummoning:altar"}
+    "": {"model": "zensummoning:block/altar"}
   }
 }

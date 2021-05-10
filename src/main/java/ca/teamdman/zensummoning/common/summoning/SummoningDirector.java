@@ -1,7 +1,10 @@
 package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
+import com.blamejared.crafttweaker.api.CraftTweakerAPI;
+import com.blamejared.crafttweaker.api.actions.IUndoableAction;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
+import net.minecraftforge.fml.LogicalSide;
 import org.openzen.zencode.java.ZenCodeType;
 
 import java.util.ArrayList;
@@ -23,10 +26,15 @@ public class SummoningDirector {
 
 	@ZenCodeType.Method
 	public static void addSummonInfo(SummoningInfo info) {
-		summonings.add(info);
-		stackLimit = Math.max(info.getReagents()
-								  .size(), stackLimit);
-		ZenSummoning.log("addSummonInfo");
+		CraftTweakerAPI.apply(new AddSummonInfoAction(info, summonings));
+	}
+
+	private static void tightenStackLimit() {
+		stackLimit = summonings.stream()
+							   .map(SummoningInfo::getReagents)
+							   .mapToInt(List::size)
+							   .max()
+							   .orElse(0);
 	}
 
 	@SuppressWarnings("unused")
@@ -35,4 +43,38 @@ public class SummoningDirector {
 		ZenSummoning.debug = true;
 	}
 
+	private static class AddSummonInfoAction implements IUndoableAction {
+		private final SummoningInfo INFO;
+
+		public AddSummonInfoAction(SummoningInfo info, List<SummoningInfo> list) {
+			this.INFO = info;
+		}
+
+		@Override
+		public void undo() {
+			summonings.remove(INFO);
+			SummoningDirector.tightenStackLimit();
+		}
+
+		@Override
+		public String describeUndo() {
+			return "Unregistering summoning " + INFO.toString();
+		}
+
+		@Override
+		public void apply() {
+			summonings.add(INFO);
+			SummoningDirector.tightenStackLimit();
+			ZenSummoning.log("addSummonInfo");
+		}
+
+		@Override
+		public String describe() {
+			return "Registering summoning " + INFO.toString();
+		}
+
+		public boolean shouldApplyOn(LogicalSide side) {
+			return this.shouldApplySingletons();
+		}
+	}
 }

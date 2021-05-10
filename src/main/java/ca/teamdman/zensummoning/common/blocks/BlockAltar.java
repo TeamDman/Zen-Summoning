@@ -6,6 +6,7 @@ import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
@@ -28,11 +29,12 @@ public class BlockAltar extends Block {
 	protected static final VoxelShape    SHAPE = Block.makeCuboidShape(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
 	private final          AxisAlignedBB bb    = new AxisAlignedBB(0.0625D, 0.0D, 0.0625D, 0.9375D, 0.0625D, 0.9375D);
 
-	public BlockAltar(AbstractBlock.Properties properties) {
-		super(properties.notSolid()
-						.doesNotBlockMovement()
-						.harvestTool(ToolType.PICKAXE)
-						.harvestLevel(ItemTier.STONE.getHarvestLevel()));
+	public BlockAltar() {
+		super(AbstractBlock.Properties.create(Material.PISTON)
+									  .notSolid()
+									  .doesNotBlockMovement()
+									  .harvestTool(ToolType.PICKAXE)
+									  .harvestLevel(ItemTier.STONE.getHarvestLevel()));
 		setRegistryName(new ResourceLocation(ZenSummoning.MOD_ID, "altar"));
 	}
 
@@ -105,8 +107,14 @@ public class BlockAltar extends Block {
 					player.setHeldItem(hand, altar.popStack());
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, -0.5f);
 				} else {
-					player.setHeldItem(hand, altar.pushStack(player.getHeldItem(hand)));
-					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, 2f);
+					ItemStack handStack = player.getHeldItem(hand);
+					ItemStack remaining = altar.pushStack(handStack);
+					if (handStack.equals(remaining, false)) {
+						player.sendMessage(new TranslationTextComponent("chat.zensummoning.invalid_ingredient"), Util.DUMMY_UUID);
+					} else {
+						player.setHeldItem(hand, remaining);
+						world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, 2f);
+					}
 				}
 			} else {
 				ZenSummoning.log("Altar onBlockActivated player is sneaking");

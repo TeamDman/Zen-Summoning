@@ -1,7 +1,6 @@
 package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
-import ca.teamdman.zensummoning.common.Mutator;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
 import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
 import net.minecraft.nbt.CompoundNBT;
@@ -13,18 +12,19 @@ import org.openzen.zencode.java.ZenCodeType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 @ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".SummoningInfo")
 @ZenRegister
 public class SummoningInfo {
 	//	private IIngredientWithAmount               catalyst        = IngredientUnknown.INSTANCE;
-	private IIngredientWithAmount               catalyst        = null;
-	private boolean                   consumeCatalyst = true;
-	private List<MobInfo>             mobs            = new ArrayList<>();
-	private Mutator<SummoningAttempt> mutator         = (__) -> {
+	private IIngredientWithAmount       catalyst        = null;
+	private boolean                     consumeCatalyst = true;
+	private List<MobInfo>               mobs            = new ArrayList<>();
+	private Consumer<SummoningAttempt>  mutator         = (__) -> {
 	};
-	private List<IIngredientWithAmount>         reagents        = new ArrayList<>();
-	private double                    weight          = 1;
+	private List<IIngredientWithAmount> reagents        = new ArrayList<>();
+	private double                      weight          = 1;
 
 	private SummoningInfo() {
 	}
@@ -96,12 +96,12 @@ public class SummoningInfo {
 		return this;
 	}
 
-	public Mutator<SummoningAttempt> getMutator() {
+	public Consumer<SummoningAttempt> getMutator() {
 		return mutator;
 	}
 
 	@ZenCodeType.Method
-	public SummoningInfo setMutator(Mutator<SummoningAttempt> mutator) {
+	public SummoningInfo setMutator(Consumer<SummoningAttempt> mutator) {
 		this.mutator = mutator;
 		return this;
 	}

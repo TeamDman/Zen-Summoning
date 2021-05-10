@@ -3,7 +3,7 @@ package ca.teamdman.zensummoning.common.summoning;
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.World;
 import org.openzen.zencode.java.ZenCodeType;
 import org.openzen.zencode.java.ZenCodeType.Getter;
 import org.openzen.zencode.java.ZenCodeType.Setter;
@@ -12,11 +12,11 @@ import org.openzen.zencode.java.ZenCodeType.Setter;
 @ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".SummoningAttempt")
 public class SummoningAttempt {
 	private final BlockPos pos;
-	private final IWorld   world;
+	private final World   world;
 	private       String   message = "chat.zensummoning.success";
 	private       boolean  success = true;
 
-	public SummoningAttempt(IWorld world, BlockPos pos) {
+	public SummoningAttempt(World world, BlockPos pos) {
 		this.world = world;
 		this.pos = pos;
 	}
@@ -47,7 +47,7 @@ public class SummoningAttempt {
 	}
 
 	@Getter("world")
-	public IWorld getWorld() {
+	public World getWorld() {
 		return world;
 	}
 
