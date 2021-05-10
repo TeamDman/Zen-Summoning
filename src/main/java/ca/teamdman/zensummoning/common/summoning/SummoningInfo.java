@@ -3,6 +3,7 @@ package ca.teamdman.zensummoning.common.summoning;
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
 import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
+import com.blamejared.crafttweaker_annotations.annotations.Document;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
@@ -16,6 +17,7 @@ import java.util.function.Consumer;
 
 @ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".SummoningInfo")
 @ZenRegister
+@Document("mods/zensummoning/SummoningInfo")
 public class SummoningInfo {
 	//	private IIngredientWithAmount               catalyst        = IngredientUnknown.INSTANCE;
 	private IIngredientWithAmount       catalyst        = null;

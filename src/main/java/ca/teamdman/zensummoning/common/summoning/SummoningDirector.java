@@ -4,14 +4,18 @@ import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.CraftTweakerAPI;
 import com.blamejared.crafttweaker.api.actions.IUndoableAction;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
+import com.blamejared.crafttweaker_annotations.annotations.Document;
 import net.minecraftforge.fml.LogicalSide;
 import org.openzen.zencode.java.ZenCodeType;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * @docParam this SummoningDirector
+ */
 @ZenRegister
 @ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".SummoningDirector")
+@Document("mods/zensummoning/SummoningDirector")
 public class SummoningDirector {
 	private static final List<SummoningInfo> summonings = new ArrayList<>();
 	private static       int                 stackLimit = 0;

@@ -20,9 +20,10 @@ public class BlockStateProvider extends net.minecraftforge.client.model.generato
 		//https://github.com/MinecraftForge/MinecraftForge/blob/1.16.x/src/test/java/net/minecraftforge/debug/client/model/NewModelLoaderTest.java#L247-L252
 		//https://github.com/MinecraftForge/MinecraftForge/blob/1.16.x/src/test/java/net/minecraftforge/debug/DeferredRegistryTest.java
 		simpleBlock(Registrar.ALTAR_BLOCK.get(),
-					models().withExistingParent("altar", new ResourceLocation(ZenSummoning.MOD_ID,"block/altar_model"))
+					models().withExistingParent("altar", new ResourceLocation(ZenSummoning.MOD_ID, "block/altar_model"))
 							.texture("#altar_new", new ResourceLocation(ZenSummoning.MOD_ID, "blocks/altar_new"))
 							.texture("particle", "#altar_new"));
+
 
 	}
 }

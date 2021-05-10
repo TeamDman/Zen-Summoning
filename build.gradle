@@ -111,6 +111,10 @@ dependencies {
     compileOnly fg.deobf('mezz.jei:jei-1.16.4:7.6.1.71')
     runtimeOnly fg.deobf('mezz.jei:jei-1.16.4:7.6.1.71')
     implementation fg.deobf("com.blamejared.crafttweaker:CraftTweaker-1.16.5:7.1.0.277")
+    annotationProcessor "com.blamejared.crafttweaker:CraftTweaker-1.16.5:7.1.0.277"
+    annotationProcessor "com.blamejared.crafttweaker:Crafttweaker_Annotation_Processors-1.16.5:1.0.0.277"
+    annotationProcessor "org.reflections:reflections:0.9.10"
+    annotationProcessor "com.google.code.gson:gson:2.8.6"
 //    implementation fg.deobf("com.blamejared.crafttweaker:CraftTweaker-1.16.5:7.1.0.275")
 //    compile "com.blamejared.crafttweaker:CraftTweaker-1.16.4:7.1.0.84"
 

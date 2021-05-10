@@ -3,6 +3,7 @@ package ca.teamdman.zensummoning.common.summoning;
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
 import com.blamejared.crafttweaker.api.data.IData;
+import com.blamejared.crafttweaker_annotations.annotations.Document;
 import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
@@ -13,6 +14,7 @@ import org.openzen.zencode.java.ZenCodeType.Method;
 
 @ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".MobInfo")
 @ZenRegister
+@Document("mods/zensummoning/MobInfo")
 public class MobInfo {
 	private int              count  = 1;
 	private CompoundNBT      data   = new CompoundNBT();

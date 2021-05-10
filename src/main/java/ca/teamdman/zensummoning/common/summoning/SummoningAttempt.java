@@ -2,6 +2,7 @@ package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
+import com.blamejared.crafttweaker_annotations.annotations.Document;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.openzen.zencode.java.ZenCodeType;
@@ -10,6 +11,7 @@ import org.openzen.zencode.java.ZenCodeType.Setter;
 
 @ZenRegister
 @ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".SummoningAttempt")
+@Document("mods/zensummoning/SummoningAttempt")
 public class SummoningAttempt {
 	private final BlockPos pos;
 	private final World   world;
