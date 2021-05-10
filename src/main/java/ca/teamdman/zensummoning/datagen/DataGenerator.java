@@ -16,8 +16,9 @@ public class DataGenerator {
 
 		net.minecraft.data.DataGenerator generator = e.getGenerator();
 		if (e.includeServer()) {
-			generator.addProvider(new LootTableProvider(generator));
-			generator.addProvider(new BlockStateProvider(generator, e.getExistingFileHelper()));
+			generator.addProvider(new LootTables(generator));
+			generator.addProvider(new BlockStates(generator, e.getExistingFileHelper()));
+			generator.addProvider(new ItemModels(generator, e.getExistingFileHelper()));
 		}
 	}
 }

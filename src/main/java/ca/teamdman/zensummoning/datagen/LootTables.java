@@ -16,8 +16,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class LootTableProvider extends net.minecraft.data.LootTableProvider {
-	public LootTableProvider(DataGenerator dataGeneratorIn) {
+public class LootTables extends net.minecraft.data.LootTableProvider {
+	public LootTables(DataGenerator dataGeneratorIn) {
 		super(dataGeneratorIn);
 	}
 
