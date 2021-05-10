@@ -6,6 +6,7 @@ import ca.teamdman.zensummoning.common.Proxy;
 import ca.teamdman.zensummoning.common.Registrar;
 import ca.teamdman.zensummoning.common.ServerProxy;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
@@ -27,10 +28,15 @@ public class ZenSummoning {
 	public static final String           ZEN_PACKAGE  = "mods." + MOD_ID;
 
 	public ZenSummoning() {
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
+		IEventBus bus = FMLJavaModLoadingContext.get()
+														.getModEventBus();
+		bus.addListener(this::onClientSetup);
+		Registrar.BLOCKS.register(bus);
+		Registrar.ITEMS.register(bus);
+		Registrar.TILES.register(bus);
 	}
 
 	public void onClientSetup(FMLClientSetupEvent e) {
-		ClientRegistry.bindTileEntityRenderer(Registrar.Tiles.ALTAR, TESRAltar::new);
+		ClientRegistry.bindTileEntityRenderer(Registrar.ALTAR_TILE.get(), TESRAltar::new);
 	}
 }

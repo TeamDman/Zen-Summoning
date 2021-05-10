@@ -34,12 +34,12 @@ public class LootTableProvider extends net.minecraft.data.LootTableProvider {
 	private class BlockLootTableProvider extends BlockLootTables {
 		@Override
 		protected void addTables() {
-			registerDropSelfLootTable(Registrar.Blocks.ALTAR);
+			registerDropSelfLootTable(Registrar.ALTAR_BLOCK.get());
 		}
 
 		@Override
 		protected Iterable<Block> getKnownBlocks() {
-			return Arrays.asList(Registrar.Blocks.ALTAR);
+			return Arrays.asList(Registrar.ALTAR_BLOCK.get());
 		}
 	}
 }

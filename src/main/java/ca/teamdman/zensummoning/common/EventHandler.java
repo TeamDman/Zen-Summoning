@@ -12,7 +12,7 @@ class EventHandler {
 	public static void onBlockRightClicked(PlayerInteractEvent.RightClickBlock event) {
 		if (event.getWorld()
 				 .getBlockState(event.getPos())
-				 .getBlock().getBlock() == Registrar.Blocks.ALTAR) {
+				 .getBlock().getBlock() == Registrar.ALTAR_BLOCK.get()) {
 			event.setUseBlock(Event.Result.ALLOW);
 			event.setUseItem(Event.Result.DENY);
 			event.setCanceled(false);

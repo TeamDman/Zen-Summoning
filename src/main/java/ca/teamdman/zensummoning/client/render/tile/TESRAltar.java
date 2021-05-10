@@ -48,4 +48,5 @@ public class TESRAltar extends TileEntityRenderer<TileAltar> {
 
 		matrixStack.pop();
 	}
+
 }

@@ -36,7 +36,7 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 
 	public AltarCategory(IGuiHelper guiHelper) {
 		this.background = guiHelper.createBlankDrawable(WIDTH, HEIGHT);
-		this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registrar.Blocks.ALTAR));
+		this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registrar.ALTAR_BLOCK.get()));
 	}
 
 	@Override
@@ -108,7 +108,7 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 		}
 		guiItemStacks.set(ingredients);
 		guiItemStacks.init(++i, false, WIDTH / 2 - 8, HEIGHT / 2 - 8);
-		guiItemStacks.set(i, new ItemStack(Registrar.Blocks.ALTAR));
+		guiItemStacks.set(i, new ItemStack(Registrar.ALTAR_BLOCK.get()));
 	}
 
 	@Override

@@ -29,7 +29,7 @@ public class JEIPlugin implements IModPlugin {
 
 	@Override
 	public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-		registration.addRecipeCatalyst(new ItemStack(Registrar.Blocks.ALTAR), ZenSummoning.JEI_CATEGORY);
+		registration.addRecipeCatalyst(new ItemStack(Registrar.ALTAR_BLOCK.get()), ZenSummoning.JEI_CATEGORY);
 	}
 
 	@Override

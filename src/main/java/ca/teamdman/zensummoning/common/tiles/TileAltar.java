@@ -51,7 +51,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 
 	public TileAltar() {
 		//noinspection ConstantConditions
-		super(Registrar.Tiles.ALTAR);
+		super(Registrar.ALTAR_TILE.get());
 	}
 
 	/**

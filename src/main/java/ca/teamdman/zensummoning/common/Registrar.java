@@ -9,56 +9,26 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ObjectHolder;
-
-import javax.annotation.Nonnull;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 
 @Mod.EventBusSubscriber(modid = ZenSummoning.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registrar {
-	public static final ItemGroup group = new ItemGroup(-1, "zensummoning") {
+	public static       DeferredRegister<Block> BLOCKS      = DeferredRegister.create(ForgeRegistries.BLOCKS, ZenSummoning.MOD_ID);
+	public static       RegistryObject<Block>   ALTAR_BLOCK = BLOCKS.register("altar", BlockAltar::new);
+	public static final ItemGroup               group       = new ItemGroup(-1, "zensummoning") {
 		@Override
 		public ItemStack createIcon() {
-			return new ItemStack(Blocks.ALTAR);
+			return new ItemStack(ALTAR_BLOCK.get());
 		}
 	};
+	public static DeferredRegister<Item>                    ITEMS      = DeferredRegister.create(ForgeRegistries.ITEMS, ZenSummoning.MOD_ID);
+	public static RegistryObject<Item>                      ALTAR_ITEM = ITEMS.register("altar", () -> new BlockItem(ALTAR_BLOCK.get(), new Item.Properties().group(group)));
+	public static DeferredRegister<TileEntityType<?>>       TILES      = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, ZenSummoning.MOD_ID);
+	public static RegistryObject<TileEntityType<TileAltar>> ALTAR_TILE = TILES.register("altar",
+																						() -> TileEntityType.Builder.create(TileAltar::new, ALTAR_BLOCK.get())
+																													.build(null));
 
-	@SubscribeEvent
-	public static void onRegisterTileEntityTypes(@Nonnull final RegistryEvent.Register<TileEntityType<?>> e) {
-		e.getRegistry()
-		 .register(TileEntityType.Builder.create(TileAltar::new, Blocks.ALTAR)
-										 .build(null)
-										 .setRegistryName(ZenSummoning.MOD_ID, "altar"));
-	}
-
-	@SubscribeEvent
-	public static void onRegisterItems(final RegistryEvent.Register<Item> e) {
-		Item altar = new BlockItem(Blocks.ALTAR, new Item.Properties().group(group)).setRegistryName(ZenSummoning.MOD_ID, "altar");
-		e.getRegistry()
-		 .register(altar);
-		ZenSummoning.PROXY.fillItemGroup(group, altar);
-	}
-
-	@SubscribeEvent
-	public static void onRegisterBlocks(final RegistryEvent.Register<Block> e) {
-		e.getRegistry().register(new BlockAltar());
-	}
-
-	@ObjectHolder(ZenSummoning.MOD_ID)
-	public static final class Blocks {
-
-		public static final Block ALTAR = null;
-	}
-
-	@ObjectHolder(ZenSummoning.MOD_ID)
-	public static class Items {
-		public static final Item ALTAR = null;
-	}
-
-	@ObjectHolder(ZenSummoning.MOD_ID)
-	public static final class Tiles {
-		public static final TileEntityType<TileAltar> ALTAR = null;
-	}
 }

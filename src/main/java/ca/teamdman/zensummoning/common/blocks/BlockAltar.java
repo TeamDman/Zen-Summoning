@@ -1,6 +1,5 @@
 package ca.teamdman.zensummoning.common.blocks;
 
-import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.summoning.SummoningAttempt;
 import ca.teamdman.zensummoning.common.tiles.TileAltar;
 import net.minecraft.block.AbstractBlock;
@@ -36,7 +35,6 @@ public class BlockAltar extends Block {
 									  .harvestTool(ToolType.PICKAXE)
 									  .hardnessAndResistance(5,6)
 									  .harvestLevel(ItemTier.STONE.getHarvestLevel()));
-		setRegistryName(new ResourceLocation(ZenSummoning.MOD_ID, "altar"));
 	}
 
 	@Override
