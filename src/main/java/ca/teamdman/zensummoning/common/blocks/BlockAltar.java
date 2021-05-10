@@ -117,9 +117,13 @@ public class BlockAltar extends Block {
 				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, -0.5f);
 			} else {
 				ItemStack handStack = player.getHeldItem(hand);
+				if (!altar.validIngredient(handStack)) {
+					player.sendMessage(new TranslationTextComponent("chat.zensummoning.invalid_ingredient"), Util.DUMMY_UUID);
+					return ActionResultType.CONSUME;
+				}
 				ItemStack remaining = altar.pushStack(handStack);
 				if (handStack.equals(remaining, false)) {
-					player.sendMessage(new TranslationTextComponent("chat.zensummoning.invalid_ingredient"), Util.DUMMY_UUID);
+					player.sendMessage(new TranslationTextComponent("chat.zensummoning.full"), Util.DUMMY_UUID);
 				} else {
 					player.setHeldItem(hand, remaining);
 					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, 2f);

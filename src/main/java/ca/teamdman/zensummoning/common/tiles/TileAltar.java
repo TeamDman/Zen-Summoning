@@ -97,16 +97,16 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		}
 
 		info.getMutator()
-			.accept(attempt);
+				.accept(attempt);
 		if (!attempt.isSuccess())
 			return attempt;
 
 		beginSummoning(info);
 		slotsMatch.get()
-				  .forEach((slot, count) -> inventory.extractItem(slot, count, false));
+				.forEach((slot, count) -> inventory.extractItem(slot, count, false));
 		if (info.isCatalystConsumed())
 			catalyst.shrink(info.getCatalyst()
-								.getAmount());
+									.getAmount());
 		return attempt;
 	}
 
@@ -125,9 +125,9 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	private Optional<SummoningInfo> getSummonInfo(ItemStack catalyst) {
 		WeightedRandomBag<SummoningInfo> bag = new WeightedRandomBag<>();
 		SummoningDirector.getSummonInfos()
-						 .stream()
-						 .filter(x -> meetsCriteria(x, catalyst))
-						 .forEach(x -> bag.addEntry(x, x.getWeight()));
+				.stream()
+				.filter(x -> meetsCriteria(x, catalyst))
+				.forEach(x -> bag.addEntry(x, x.getWeight()));
 
 		if (bag.isEmpty()) {
 			return Optional.empty();
@@ -145,8 +145,8 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	 */
 	private boolean meetsCriteria(SummoningInfo info, ItemStack handStack) {
 		if (!info.getCatalyst()
-				 .getIngredient()
-				 .matches(new MCItemStackMutable(handStack)))
+				.getIngredient()
+				.matches(new MCItemStackMutable(handStack)))
 			return false;
 		if (info.getCatalyst()
 				.getAmount() > handStack.getCount())
@@ -170,7 +170,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 				// Make sure we don't take from the same slot twice without noticing
 				int available = slotStack.getCount() - slotUsage.getOrDefault(slot, 0);
 				if (reagent.getIngredient()
-						   .matches(new MCItemStackMutable(slotStack)) && available > 0) {
+						.matches(new MCItemStackMutable(slotStack)) && available > 0) {
 					slotUsage.merge(slot, Math.min(remaining, available), Integer::sum);
 					remaining -= available;
 				}
@@ -217,6 +217,16 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_EVOKER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
+	}
+
+	public boolean validIngredient(ItemStack item) {
+		MCItemStackMutable stack = new MCItemStackMutable(item);
+		return SummoningDirector.getSummonInfos()
+				.stream()
+				.flatMap(info -> info.getReagents()
+						.stream())
+				.map(IIngredientWithAmount::getIngredient)
+				.anyMatch(r -> r.matches(stack));
 	}
 
 	/**
@@ -296,12 +306,6 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		if (summonCountdown > 0)
 			return;
 		summonFinish();
-	}	@Nullable
-	@Override
-	public SUpdateTileEntityPacket getUpdatePacket() {
-		CompoundNBT comp = new CompoundNBT();
-		write(comp);
-		return new SUpdateTileEntityPacket(pos, 255, comp);
 	}
 
 	/**
@@ -316,23 +320,24 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 
 		for (MobInfo mobInfo : summonInfo.getMobs()) {
 			for (int i = 0; i < mobInfo.getCount(); i++) {
-				Entity mob = mobInfo.getEntityType().create(world);
+				Entity mob = mobInfo.getEntityType()
+						.create(world);
 				if (mob == null) {
 					return;
 				}
 				mob.deserializeNBT(mobInfo.getData());
 				mob.setPosition(getPos().getX() + mobInfo.getOffset()
-														 .getX() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
-																									  .getX() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																																		  .getX()),
+										.getX() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+																					  .getX() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																														   .getX()),
 								getPos().getY() + mobInfo.getOffset()
-														 .getY() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
-																									  .getY() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																																		  .getY()),
+										.getY() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+																					  .getY() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																														   .getY()),
 								getPos().getZ() + mobInfo.getOffset()
-														 .getZ() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
-																									  .getZ() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																																		  .getZ()));
+										.getZ() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+																					  .getZ() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																														   .getZ()));
 				System.out.printf("%s\n", mob.getPosition());
 				world.addEntity(mob);
 			}
@@ -343,7 +348,14 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO, SoundCategory.BLOCKS, 0.5f, 1f);
 
+	}	@Nullable
+	@Override
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT comp = new CompoundNBT();
+		write(comp);
+		return new SUpdateTileEntityPacket(pos, 255, comp);
 	}
+
 
 
 
