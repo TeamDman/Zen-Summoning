@@ -9,6 +9,7 @@ import ca.teamdman.zensummoning.util.WeightedRandomBag;
 import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
 import com.blamejared.crafttweaker.impl.item.MCItemStackMutable;
 import com.google.common.collect.ImmutableList;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
@@ -348,18 +349,32 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO, SoundCategory.BLOCKS, 0.5f, 1f);
 
-	}	@Nullable
-	@Override
-	public SUpdateTileEntityPacket getUpdatePacket() {
-		CompoundNBT comp = new CompoundNBT();
-		write(comp);
-		return new SUpdateTileEntityPacket(pos, 255, comp);
 	}
 
+	@Nullable
+	@Override
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		return new SUpdateTileEntityPacket(pos, 255, serializeNBT());
+	}
 
+	@Override
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
+		deserializeNBT(pkt.getNbtCompound());
+	}
 
+	@Override
+	public void read(BlockState state, CompoundNBT nbt) {
+		inventory.deserializeNBT(nbt.getCompound("inventory"));
+		renderTick = nbt.getInt("renderTick");
+		summonCountdown = nbt.getInt("summonCountdown");
+		if (nbt.contains("summonInfo", Constants.NBT.TAG_COMPOUND))
+			summonInfo = SummoningInfo.fromNBT(nbt.getCompound("summonInfo"));
+		else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
+			clientInventory.deserializeNBT(nbt.getCompound("inventory"));
 
-	@SuppressWarnings("NullableProblems")
+		super.read(state, nbt);
+	}
+
 	@Override
 	public CompoundNBT write(CompoundNBT compound) {
 		compound.put("inventory", inventory.serializeNBT());
@@ -369,32 +384,4 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 			compound.put("summonInfo", summonInfo.serializeNBT());
 		return super.write(compound);
 	}
-
-
-	@Override
-	public CompoundNBT getUpdateTag() {
-		return write(new CompoundNBT());
-	}
-
-
-	@Override
-	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-		super.onDataPacket(net, pkt);
-		deserializeNBT(pkt.getNbtCompound());
-	}
-
-	@Override
-	public void deserializeNBT(CompoundNBT nbt) {
-		inventory.deserializeNBT(nbt.getCompound("inventory"));
-		renderTick = nbt.getInt("renderTick");
-		summonCountdown = nbt.getInt("summonCountdown");
-		if (nbt.contains("summonInfo", Constants.NBT.TAG_COMPOUND))
-			summonInfo = SummoningInfo.fromNBT(nbt.getCompound("summonInfo"));
-		else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
-			clientInventory.deserializeNBT(nbt.getCompound("inventory"));
-
-		super.deserializeNBT(nbt);
-	}
-
-
 }
