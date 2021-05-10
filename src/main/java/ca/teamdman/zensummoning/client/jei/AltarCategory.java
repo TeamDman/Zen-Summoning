@@ -28,10 +28,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class AltarCategory implements IRecipeCategory<SummoningInfo> {
-	private final int           HEIGHT = 200;
-	private final int           WIDTH  = 160;
-	private final IDrawable     background;
-	private final IDrawable     icon;
+	private final int       HEIGHT = 120;
+	private final int       WIDTH  = 160;
+	private final IDrawable background;
+	private final IDrawable icon;
 
 
 	public AltarCategory(IGuiHelper guiHelper) {
@@ -66,7 +66,8 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 
 	@Override
 	public void setIngredients(SummoningInfo summoningInfo, IIngredients ingredients) {
-		List<ItemStack> inputs = Stream.concat(Stream.of(summoningInfo.getCatalyst()), summoningInfo.getReagents()
+		List<ItemStack> inputs = Stream.concat(Stream.of(summoningInfo.getCatalyst()),
+											   summoningInfo.getReagents()
 															.stream())
 									   .flatMap(x -> Arrays.stream(x.getIngredient()
 																	.getItems()))
@@ -75,18 +76,16 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 
 		ListNBT lore = new ListNBT();
 		lore.add(StringNBT.valueOf(I18n.format("jei.zensummoning.catalyst.lore")));
-		inputs.get(0).getOrCreateChildTag("display").put("Lore", lore);
+		inputs.get(0)
+			  .getOrCreateChildTag("display")
+			  .put("Lore", lore);
 
-		List<ItemStack> outputs = Stream.concat(Arrays.stream(summoningInfo.getCatalyst()
-																		   .getIngredient()
-																		   .getItems())
-													  .map(IItemStack::getInternal),
-												summoningInfo.getMobs()
-															 .stream()
-															 .map(MobInfo::getEntityType)
-															 .map(SpawnEggItem::getEgg)
-															 .map(ItemStack::new))
-										.collect(Collectors.toList());
+		List<ItemStack> outputs = summoningInfo.getMobs()
+											   .stream()
+											   .map(MobInfo::getEntityType)
+											   .map(SpawnEggItem::getEgg)
+											   .map(ItemStack::new)
+											   .collect(Collectors.toList());
 
 		ingredients.setInputs(VanillaTypes.ITEM, inputs);
 		ingredients.setOutputs(VanillaTypes.ITEM, outputs);
@@ -95,8 +94,10 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 	@Override
 	public void setRecipe(IRecipeLayout recipeLayout, SummoningInfo summoningInfo, IIngredients ingredients) {
 		IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
-		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT / 2 - 24);
-		int size = ingredients.getInputs(VanillaTypes.ITEM).size();
+		//		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT / 2 - 24);
+		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT / 2 - 16);
+		int          size = ingredients.getInputs(VanillaTypes.ITEM)
+									   .size();
 		int          i;
 		final double dist = 25 + size * 2;
 		final double cut  = (Math.PI * 2 / (size - 1));
@@ -121,9 +122,9 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 														  I18n.format(mob.getEntityType()
 																		 .getTranslationKey())),
 											  0,
-											  40 + 9 * i++,
+											  9 * i++,
 											  Color.GRAY.getRGB());
-		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.isCatalystConsumed", summonInfo.isCatalystConsumed()), 0, 40 + 9 * i++, Color.GRAY.getRGB());
-		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.weight", summonInfo.getWeight()), 0, 40 + 9 * i++, Color.GRAY.getRGB());
+		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.isCatalystConsumed", summonInfo.isCatalystConsumed()), 0, 9 * i++, Color.GRAY.getRGB());
+		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.weight", summonInfo.getWeight()), 0, 9 * i++, Color.GRAY.getRGB());
 	}
 }
