@@ -34,6 +34,7 @@ public class BlockAltar extends Block {
 									  .notSolid()
 									  .doesNotBlockMovement()
 									  .harvestTool(ToolType.PICKAXE)
+									  .hardnessAndResistance(5,6)
 									  .harvestLevel(ItemTier.STONE.getHarvestLevel()));
 		setRegistryName(new ResourceLocation(ZenSummoning.MOD_ID, "altar"));
 	}

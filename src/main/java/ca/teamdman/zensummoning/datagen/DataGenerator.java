@@ -6,7 +6,7 @@ import net.minecraftforge.fml.DatagenModLoader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 
-@Mod.EventBusSubscriber(modid= ZenSummoning.MOD_ID)
+@Mod.EventBusSubscriber(modid= ZenSummoning.MOD_ID, bus= Mod.EventBusSubscriber.Bus.MOD)
 public class DataGenerator {
 
 	@SubscribeEvent
