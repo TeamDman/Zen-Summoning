@@ -68,7 +68,7 @@ public class SummoningAttempt {
 	 * Sets if the summoning should proceed or not.
 	 *
 	 * @param success proceed
-	 * @docParam false
+	 * @docParam success false
 	 */
 	@Setter("success")
 	public void setSuccess(boolean success) {
