@@ -41,12 +41,26 @@ public class SummoningInfo {
 		return info;
 	}
 
+	/**
+	 * Adds a new mob to the summoning.
+	 * Returns itself for builder pattern.
+	 *
+	 * @param info mob to add
+	 * @return self SummoningInfo for builder pattern
+	 * @docParam info MobInfo.create().setMob("minecraft:zombie")
+	 */
 	@ZenCodeType.Method
 	public SummoningInfo addMob(MobInfo info) {
 		this.mobs.add(info);
 		return this;
 	}
 
+	/**
+	 * Creates a new SummoningInfo with default values.
+	 * See other methods for adding more customization.
+	 *
+	 * @return new info
+	 */
 	@ZenCodeType.Method
 	public static SummoningInfo create() {
 		return new SummoningInfo();
@@ -56,6 +70,14 @@ public class SummoningInfo {
 		return weight;
 	}
 
+	/**
+	 * Sets the weight that this summoning has.
+	 * Summonings with the same catalyst and reagents are determined randomly using this.
+	 *
+	 * @param weight
+	 * @return self
+	 * @docParam weight 3
+	 */
 	@ZenCodeType.Method
 	public SummoningInfo setWeight(double weight) {
 		this.weight = weight;
@@ -66,12 +88,26 @@ public class SummoningInfo {
 		return catalyst;
 	}
 
+	/**
+	 * Sets the catalyst that will be used to start the ritual.
+	 *
+	 * @param ingredient catalyst
+	 * @return self
+	 * @docParam ingredient <item:minecraft:stick> * 2
+	 */
 	@ZenCodeType.Method
 	public SummoningInfo setCatalyst(IIngredientWithAmount ingredient) {
 		this.catalyst = ingredient;
 		return this;
 	}
 
+	/**
+	 * Determines whether or not the catalyst will be consumed.
+	 *
+	 * @param value consumed
+	 * @return self
+	 * @docParam value false
+	 */
 	@ZenCodeType.Method
 	public SummoningInfo setConsumeCatalyst(boolean value) {
 		this.consumeCatalyst = value;
@@ -91,6 +127,13 @@ public class SummoningInfo {
 		return Collections.unmodifiableList(reagents);
 	}
 
+	/**
+	 * Sets the ingredients to be required to start the summon.
+	 *
+	 * @param reagents ingredient list
+	 * @return self
+	 * @docParam reagents [<item:minecraft:stone>, <item:minecraft:egg>*12]
+	 */
 	@ZenCodeType.Method
 	public SummoningInfo setReagents(IIngredientWithAmount[] reagents) {
 		this.reagents.clear();
@@ -102,6 +145,20 @@ public class SummoningInfo {
 		return mutator;
 	}
 
+	/**
+	 * Custom callback to determine if a summon should be allowed.
+	 *
+	 * @param mutator callback
+	 * @return self
+	 * @docParam mutator (attempt as SummoningAttempt) => {
+	 *             if (attempt.world.raining) {
+	 *                 attempt.success = false;
+	 *                 attempt.message = "Can't summon this in the rain!";
+	 *             } else {
+	 *                 attempt.message = "Good Luck!";
+	 *             }
+	 *         }
+	 */
 	@ZenCodeType.Method
 	public SummoningInfo setMutator(Consumer<SummoningAttempt> mutator) {
 		this.mutator = mutator;

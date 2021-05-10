@@ -14,6 +14,9 @@ import mods.zensummoning.SummoningInfo;
 
 :::group{name=create}
 
+Creates a new SummoningInfo with default values. <br />  See other methods for adding more customization.
+
+Returns: new info  
 Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
 
 ```zenscript
@@ -28,90 +31,123 @@ SummoningInfo.create();
 
 :::group{name=addMob}
 
+Adds a new mob to the summoning.
+ Returns itself for builder pattern.
+
 Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
 
 ```zenscript
-SummoningInfo.addMob(info as MobInfo) as SummoningInfo
+// SummoningInfo.addMob(info as MobInfo) as SummoningInfo
+
+mySummoningInfo.addMob(MobInfo.create().setMob("minecraft:zombie"));
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| info | [MobInfo](/mods/zensummoning/MobInfo) | No Description Provided |
+| info | [MobInfo](/mods/zensummoning/MobInfo) | mob to add |
 
 
 :::
 
 :::group{name=setCatalyst}
 
+Sets the catalyst that will be used to start the ritual.
+
 Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
 
 ```zenscript
-SummoningInfo.setCatalyst(ingredient as IIngredientWithAmount) as SummoningInfo
+// SummoningInfo.setCatalyst(ingredient as IIngredientWithAmount) as SummoningInfo
+
+mySummoningInfo.setCatalyst(<item:minecraft:stick> * 2);
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| ingredient | [IIngredientWithAmount](/vanilla/api/items/IIngredientWithAmount) | No Description Provided |
+| ingredient | [IIngredientWithAmount](/vanilla/api/items/IIngredientWithAmount) | catalyst |
 
 
 :::
 
 :::group{name=setConsumeCatalyst}
 
+Determines whether or not the catalyst will be consumed.
+
 Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
 
 ```zenscript
-SummoningInfo.setConsumeCatalyst(value as boolean) as SummoningInfo
+// SummoningInfo.setConsumeCatalyst(value as boolean) as SummoningInfo
+
+mySummoningInfo.setConsumeCatalyst(false);
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| value | boolean | No Description Provided |
+| value | boolean | consumed |
 
 
 :::
 
 :::group{name=setMutator}
 
+Custom callback to determine if a summon should be allowed.
+
 Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
 
 ```zenscript
-SummoningInfo.setMutator(mutator as Consumer<SummoningAttempt>) as SummoningInfo
+// SummoningInfo.setMutator(mutator as Consumer<SummoningAttempt>) as SummoningInfo
+
+mySummoningInfo.setMutator((attempt as SummoningAttempt) => {
+             if (attempt.world.raining) {
+                 attempt.success = false;
+                 attempt.message = "Can't summon this in the rain!";
+             } else {
+                 attempt.message = "Good Luck!";
+             }
+         });
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| mutator | Consumer&lt;[SummoningAttempt](/mods/zensummoning/SummoningAttempt)&gt; | No Description Provided |
+| mutator | Consumer&lt;[SummoningAttempt](/mods/zensummoning/SummoningAttempt)&gt; | callback |
 
 
 :::
 
 :::group{name=setReagents}
 
+Sets the ingredients to be required to start the summon.
+
 Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
 
 ```zenscript
-SummoningInfo.setReagents(reagents as IIngredientWithAmount[]) as SummoningInfo
+// SummoningInfo.setReagents(reagents as IIngredientWithAmount[]) as SummoningInfo
+
+mySummoningInfo.setReagents([<item:minecraft:stone>, <item:minecraft:egg>*12]);
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| reagents | [IIngredientWithAmount](/vanilla/api/items/IIngredientWithAmount)[] | No Description Provided |
+| reagents | [IIngredientWithAmount](/vanilla/api/items/IIngredientWithAmount)[] | ingredient list |
 
 
 :::
 
 :::group{name=setWeight}
 
+Sets the weight that this summoning has.
+ Summonings with the same catalyst and reagents are determined randomly using this.
+
 Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
 
 ```zenscript
-SummoningInfo.setWeight(weight as double) as SummoningInfo
+// SummoningInfo.setWeight(weight as double) as SummoningInfo
+
+mySummoningInfo.setWeight(3);
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| weight | double | No Description Provided |
+| weight | double |  |
 
 
 :::

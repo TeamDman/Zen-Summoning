@@ -10,6 +10,7 @@ import org.openzen.zencode.java.ZenCodeType;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * @docParam this SummoningDirector
  */
@@ -28,6 +29,14 @@ public class SummoningDirector {
 		return summonings;
 	}
 
+	/**
+	 * @param info Summoning to add
+	 * @docParam info SummoningInfo.create()
+	 *         .setCatalyst(<item:minecraft:stick>)
+	 *         .setConsumeCatalyst(false)
+	 *         .setReagents([<item:minecraft:stone>, <item:minecraft:egg>*12])
+	 *         .addMob(MobInfo.create().setMob("minecraft:zombie"))
+	 */
 	@ZenCodeType.Method
 	public static void addSummonInfo(SummoningInfo info) {
 		CraftTweakerAPI.apply(new AddSummonInfoAction(info, summonings));

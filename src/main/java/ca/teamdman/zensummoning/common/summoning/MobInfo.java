@@ -32,6 +32,12 @@ public class MobInfo {
 		this.spread = spread;
 	}
 
+	/**
+	 * Creates a new MobInfo with default values.
+	 * See other methods for adding more customization.
+	 *
+	 * @return new MobInfo
+	 */
 	@Method
 	public static MobInfo create() {
 		return new MobInfo();
@@ -45,6 +51,13 @@ public class MobInfo {
 		return count;
 	}
 
+	/**
+	 * Sets the quantity of the mob to be spawned.
+	 *
+	 * @param count quantity
+	 * @return self
+	 * @docParam count 12
+	 */
 	@Method
 	public MobInfo setCount(int count) {
 		this.count = count;
@@ -55,6 +68,23 @@ public class MobInfo {
 		return data;
 	}
 
+	/**
+	 * Sets the NBT data of the mobs to be spawned.
+	 *
+	 * @param data NBT
+	 * @return self
+	 * @docParam data {
+	 * "Health":200,
+	 * "Attributes":[
+	 * {"Name":"generic.maxHealth", "Base":200},
+	 * {"Name":"generic.movementSpeed", "Base":0.3},
+	 * {"Name":"generic.attackDamage", "Base":6}
+	 * ],
+	 * "CustomName":"A Lost Soul",
+	 * "PersistenceRequired":1,
+	 * "CustomNameVisible":1
+	 * }
+	 */
 	@Method
 	public MobInfo setData(IData data) {
 		this.data = (CompoundNBT) data.getInternal();
@@ -69,6 +99,13 @@ public class MobInfo {
 		return ForgeRegistries.ENTITIES.getValue(mob);
 	}
 
+	/**
+	 * Sets the mob to be spawned.
+	 *
+	 * @param mob resource location
+	 * @return self
+	 * @docParam mob "minecraft:zombie_villager"
+	 */
 	@Method
 	public MobInfo setMob(String mob) {
 		this.mob = new ResourceLocation(mob);
@@ -79,12 +116,35 @@ public class MobInfo {
 		return offset;
 	}
 
+	/**
+	 * Sets the offset from the altar where the mobs will be spawned.
+	 *
+	 * @param x x
+	 * @param y y
+	 * @param z z
+	 * @return self
+	 * @docParam x 1
+	 * @docParam y 3
+	 * @docParam z 1
+	 */
 	@Method
 	public MobInfo setOffset(int x, int y, int z) {
 		this.offset = new BlockPos(x, y, z);
 		return this;
 	}
 
+	/**
+	 * Sets the random spread for spawning the mob.
+	 * Values shouldn't be negative.
+	 *
+	 * @param x x spread
+	 * @param y y spread
+	 * @param z z spread
+	 * @return self
+	 * @docParam x 3
+	 * @docParam y 3
+	 * @docParam z 3
+	 */
 	@Method
 	public MobInfo setSpread(int x, int y, int z) {
 		if (x < 0 || y < 0 || z < 0)

@@ -16,15 +16,23 @@ import mods.zensummoning.SummoningDirector;
 
 :::group{name=addSummonInfo}
 
+
+
 Return Type: void
 
 ```zenscript
-SummoningDirector.addSummonInfo(info as SummoningInfo) as void
+// SummoningDirector.addSummonInfo(info as SummoningInfo) as void
+
+SummoningDirector.addSummonInfo(SummoningInfo.create()
+         .setCatalyst(<item:minecraft:stick>)
+         .setConsumeCatalyst(false)
+         .setReagents([<item:minecraft:stone>, <item:minecraft:egg>*12])
+         .addMob(MobInfo.create().setMob("minecraft:zombie")));
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| info | [SummoningInfo](/mods/zensummoning/SummoningInfo) | No Description Provided |
+| info | [SummoningInfo](/mods/zensummoning/SummoningInfo) | Summoning to add |
 
 
 :::
