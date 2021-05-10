@@ -48,7 +48,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                zensummoning {
                     source sourceSets.main
                 }
             }
@@ -64,7 +64,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                zensummoning {
                     source sourceSets.main
                 }
             }
@@ -79,10 +79,10 @@ minecraft {
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
-            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/')
+            args '--mod', 'zensummoning', '--all', '--output', file('src/generated/resources/')
 
             mods {
-                examplemod {
+                zensummoning {
                     source sourceSets.main
                 }
             }

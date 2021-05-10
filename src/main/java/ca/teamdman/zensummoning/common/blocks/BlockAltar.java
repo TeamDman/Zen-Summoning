@@ -93,8 +93,6 @@ public class BlockAltar extends Block {
 	public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
 		if (world.isRemote)
 			return ActionResultType.CONSUME;
-//		if (hand != Hand.MAIN_HAND)
-//			return ActionResultType.CONSUME;
 		TileEntity tile = world.getTileEntity(pos);
 		if (!(tile instanceof TileAltar))
 			return ActionResultType.CONSUME; // wtf

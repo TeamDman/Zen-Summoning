@@ -48,6 +48,7 @@ public class Registrar {
 
 	@ObjectHolder(ZenSummoning.MOD_ID)
 	public static final class Blocks {
+
 		public static final Block ALTAR = null;
 	}
 
