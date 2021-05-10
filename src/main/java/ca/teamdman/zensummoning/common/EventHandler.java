@@ -1,6 +1,5 @@
 package ca.teamdman.zensummoning.common;
 
-import ca.teamdman.zensummoning.ZenSummoning;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -13,8 +12,7 @@ class EventHandler {
 	public static void onBlockRightClicked(PlayerInteractEvent.RightClickBlock event) {
 		if (event.getWorld()
 				 .getBlockState(event.getPos())
-				 .getBlock() == Registrar.Blocks.ALTAR) {
-			ZenSummoning.log("onBlockRightClicked event found");
+				 .getBlock().getBlock() == Registrar.Blocks.ALTAR) {
 			event.setUseBlock(Event.Result.ALLOW);
 			event.setUseItem(Event.Result.DENY);
 			event.setCanceled(false);

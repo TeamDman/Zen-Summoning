@@ -74,7 +74,6 @@ public class BlockAltar extends Block {
 		if (!world.isRemote && world.isBlockPowered(pos)) {
 			TileEntity tile = world.getTileEntity(pos);
 			if (!(tile instanceof TileAltar)) {
-				ZenSummoning.log("Altar onBlockActivated tile not altar?");
 				return;
 			}
 			if (((TileAltar) tile).isSummoning())
@@ -92,46 +91,45 @@ public class BlockAltar extends Block {
 
 	@Override
 	public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-		ZenSummoning.log("Altar onBlockActivated");
-		if (!world.isRemote) {
-			TileEntity tile = world.getTileEntity(pos);
-			if (!(tile instanceof TileAltar)) {
-				ZenSummoning.log("Altar onBlockActivated tile not altar?");
-				return ActionResultType.CONSUME;
-			}
-			TileAltar altar = (TileAltar) tile;
-			if (!player.isSneaking()) {
-				ZenSummoning.log("Altar onBlockActivated player not sneaking");
-				if (player.getHeldItem(hand)
-						  .isEmpty()) {
-					player.setHeldItem(hand, altar.popStack());
-					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, -0.5f);
-				} else {
-					ItemStack handStack = player.getHeldItem(hand);
-					ItemStack remaining = altar.pushStack(handStack);
-					if (handStack.equals(remaining, false)) {
-						player.sendMessage(new TranslationTextComponent("chat.zensummoning.invalid_ingredient"), Util.DUMMY_UUID);
-					} else {
-						player.setHeldItem(hand, remaining);
-						world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, 2f);
-					}
-				}
-			} else {
-				ZenSummoning.log("Altar onBlockActivated player is sneaking");
-				ItemStack        catalyst = player.getHeldItem(hand);
-				SummoningAttempt result   = altar.attemptSummon(catalyst);
-				player.setHeldItem(hand, catalyst);
-				ZenSummoning.log("Altar onBlockActivated summon " + result.getMessage());
-				player.sendMessage(new TranslationTextComponent(result.getMessage()), Util.DUMMY_UUID);
-				if (result.isSuccess()) {
-					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_BLOCK_FLUTE, SoundCategory.BLOCKS, 0.5f, 0.1f);
-				} else {
-					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.05f, 1f);
-				}
+		if (world.isRemote)
+			return ActionResultType.CONSUME;
+//		if (hand != Hand.MAIN_HAND)
+//			return ActionResultType.CONSUME;
+		TileEntity tile = world.getTileEntity(pos);
+		if (!(tile instanceof TileAltar))
+			return ActionResultType.CONSUME; // wtf
+		TileAltar altar = (TileAltar) tile;
 
+		if (player.isSneaking()) {
+			// attempt summoning
+
+			ItemStack        catalyst = player.getHeldItem(hand);
+			SummoningAttempt result   = altar.attemptSummon(catalyst);
+			player.setHeldItem(hand, catalyst);
+			player.sendMessage(new TranslationTextComponent(result.getMessage()), Util.DUMMY_UUID);
+			if (result.isSuccess()) {
+				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_BLOCK_FLUTE, SoundCategory.BLOCKS, 0.5f, 0.1f);
+			} else {
+				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.05f, 1f);
+			}
+		} else {
+			// item input and output
+			if (player.getHeldItem(hand)
+					  .isEmpty()) {
+				player.setHeldItem(hand, altar.popStack());
+				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, -0.5f);
+			} else {
+				ItemStack handStack = player.getHeldItem(hand);
+				ItemStack remaining = altar.pushStack(handStack);
+				if (handStack.equals(remaining, false)) {
+					player.sendMessage(new TranslationTextComponent("chat.zensummoning.invalid_ingredient"), Util.DUMMY_UUID);
+				} else {
+					player.setHeldItem(hand, remaining);
+					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, 2f);
+				}
 			}
 		}
-		return ActionResultType.PASS;
+		return ActionResultType.CONSUME;
 	}
 
 	@Override

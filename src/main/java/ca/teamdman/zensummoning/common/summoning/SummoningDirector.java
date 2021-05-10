@@ -37,12 +37,6 @@ public class SummoningDirector {
 							   .orElse(0);
 	}
 
-	@SuppressWarnings("unused")
-	@ZenCodeType.Method
-	public static void enableDebugging() {
-		ZenSummoning.debug = true;
-	}
-
 	private static class AddSummonInfoAction implements IUndoableAction {
 		private final SummoningInfo INFO;
 
@@ -65,7 +59,6 @@ public class SummoningDirector {
 		public void apply() {
 			summonings.add(INFO);
 			SummoningDirector.tightenStackLimit();
-			ZenSummoning.log("addSummonInfo");
 		}
 
 		@Override

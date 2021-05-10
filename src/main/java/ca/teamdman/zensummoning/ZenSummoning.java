@@ -20,13 +20,8 @@ public class ZenSummoning {
 	public static final Proxy            PROXY        = DistExecutor.runForDist(() -> ClientProxy::new, () -> ServerProxy::new);
 	public static final String           VERSION      = "@VERSION@";
 	public static final String           ZEN_PACKAGE  = "mods." + MOD_ID;
-	public static       boolean          debug        = false;
 
 	public ZenSummoning() {
 	}
 
-	public static void log(String... args) {
-		if (debug)
-			System.out.println("[ZenSummoning]\t" + String.join("\t", args));
-	}
 }

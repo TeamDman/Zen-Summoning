@@ -1,6 +1,5 @@
 package ca.teamdman.zensummoning.common.tiles;
 
-import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.Registrar;
 import ca.teamdman.zensummoning.common.summoning.MobInfo;
 import ca.teamdman.zensummoning.common.summoning.SummoningAttempt;
@@ -75,7 +74,6 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	 * Likely triggered by a redstone pulse.
 	 */
 	public SummoningAttempt attemptSummon(ItemStack catalyst) {
-		ZenSummoning.log("summonStart");
 		SummoningAttempt attempt = new SummoningAttempt(this.world, this.pos);
 		if (isSummoning()) {
 			attempt.setSuccess(false);
@@ -310,7 +308,6 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	 * Spawns the current {@link SummoningInfo} into the world
 	 */
 	private void summonFinish() {
-		ZenSummoning.log("summonFinish");
 		summonCountdown = -1;
 		if (world.isRemote) {
 			summonInfo = null;

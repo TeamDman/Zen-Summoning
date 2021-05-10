@@ -17,6 +17,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SpawnEggItem;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.StringNBT;
 import net.minecraft.util.ResourceLocation;
 
 import java.awt.*;
@@ -64,12 +66,16 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 
 	@Override
 	public void setIngredients(SummoningInfo summoningInfo, IIngredients ingredients) {
-		List<ItemStack> inputs = Stream.concat(summoningInfo.getReagents()
-															.stream(), Stream.of(summoningInfo.getCatalyst()))
+		List<ItemStack> inputs = Stream.concat(Stream.of(summoningInfo.getCatalyst()), summoningInfo.getReagents()
+															.stream())
 									   .flatMap(x -> Arrays.stream(x.getIngredient()
 																	.getItems()))
 									   .map(IItemStack::getInternal)
 									   .collect(Collectors.toList());
+
+		ListNBT lore = new ListNBT();
+		lore.add(StringNBT.valueOf(I18n.format("jei.zensummoning.catalyst.lore")));
+		inputs.get(0).getOrCreateChildTag("display").put("Lore", lore);
 
 		List<ItemStack> outputs = Stream.concat(Arrays.stream(summoningInfo.getCatalyst()
 																		   .getIngredient()
@@ -89,10 +95,8 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 	@Override
 	public void setRecipe(IRecipeLayout recipeLayout, SummoningInfo summoningInfo, IIngredients ingredients) {
 		IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
-		//		List<List<ItemStack>> inputs        = ingredients.getInputs(summoningInfo);
 		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT / 2 - 24);
-		int size = summoningInfo.getReagents()
-								.size();
+		int size = ingredients.getInputs(VanillaTypes.ITEM).size();
 		int          i;
 		final double dist = 25 + size * 2;
 		final double cut  = (Math.PI * 2 / (size - 1));
