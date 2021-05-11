@@ -227,7 +227,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 				.flatMap(info -> info.getReagents()
 						.stream())
 				.map(IIngredientWithAmount::getIngredient)
-				.anyMatch(r -> r.matches(stack));
+				.anyMatch(r -> r.asVanillaIngredient().test(item));
 	}
 
 	/**

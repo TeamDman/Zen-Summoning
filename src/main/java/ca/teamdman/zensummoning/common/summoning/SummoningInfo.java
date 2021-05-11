@@ -3,11 +3,13 @@ package ca.teamdman.zensummoning.common.summoning;
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
 import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
+import com.blamejared.crafttweaker.impl.entity.MCEntityType;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.openzen.zencode.java.ZenCodeType;
 
 import java.util.ArrayList;
@@ -28,7 +30,8 @@ public class SummoningInfo {
 	private List<IIngredientWithAmount> reagents        = new ArrayList<>();
 	private double                      weight          = 1;
 
-	private SummoningInfo() {
+	@ZenCodeType.Constructor
+	public SummoningInfo() {
 	}
 
 	public static SummoningInfo fromNBT(CompoundNBT compound) {
@@ -36,7 +39,10 @@ public class SummoningInfo {
 		ListNBT       mobs = compound.getList("mobs", 10); // get ListNBT<CompoundNBT>
 		for (int i = 0; i < mobs.size(); i++) {
 			CompoundNBT mob = mobs.getCompound(i);
-			info.addMob(new MobInfo(mob.getCompound("data"), new ResourceLocation(mob.getString("mob")), new BlockPos(mob.getInt("x"), mob.getInt("y"), mob.getInt("z")), new BlockPos(mob.getInt("dx"), mob.getInt("dy"), mob.getInt("dz"))));
+			info.addMob(new MobInfo(mob.getCompound("data"),
+									new MCEntityType(ForgeRegistries.ENTITIES.getValue(new ResourceLocation(mob.getString("mob")))),
+									new BlockPos(mob.getInt("x"), mob.getInt("y"), mob.getInt("z")),
+									new BlockPos(mob.getInt("dx"), mob.getInt("dy"), mob.getInt("dz"))));
 		}
 		return info;
 	}
@@ -58,6 +64,8 @@ public class SummoningInfo {
 	/**
 	 * Creates a new SummoningInfo with default values.
 	 * See other methods for adding more customization.
+	 *
+	 * Same as constructor.
 	 *
 	 * @return new info
 	 */
@@ -151,13 +159,13 @@ public class SummoningInfo {
 	 * @param mutator callback
 	 * @return self
 	 * @docParam mutator (attempt as SummoningAttempt) => {
-	 *             if (attempt.world.raining) {
-	 *                 attempt.success = false;
-	 *                 attempt.message = "Can't summon this in the rain!";
-	 *             } else {
-	 *                 attempt.message = "Good Luck!";
-	 *             }
-	 *         }
+	 * if (attempt.world.raining) {
+	 * attempt.success = false;
+	 * attempt.message = "Can't summon this in the rain!";
+	 * } else {
+	 * attempt.message = "Good Luck!";
+	 * }
+	 * }
 	 */
 	@ZenCodeType.Method
 	public SummoningInfo setMutator(Consumer<SummoningAttempt> mutator) {
@@ -172,26 +180,26 @@ public class SummoningInfo {
 			CompoundNBT mob = new CompoundNBT();
 			mob.putString("mob",
 						  info.getMobId()
-							  .toString());
+								  .toString());
 			mob.put("data", info.getData());
 			mob.putInt("x",
 					   info.getOffset()
-						   .getX());
+							   .getX());
 			mob.putInt("y",
 					   info.getOffset()
-						   .getY());
+							   .getY());
 			mob.putInt("z",
 					   info.getOffset()
-						   .getZ());
+							   .getZ());
 			mob.putInt("dx",
 					   info.getSpread()
-						   .getX());
+							   .getX());
 			mob.putInt("dy",
 					   info.getSpread()
-						   .getY());
+							   .getY());
 			mob.putInt("dz",
 					   info.getSpread()
-						   .getZ());
+							   .getZ());
 			mobs.add(mob);
 		}
 		compound.put("mobs", mobs);

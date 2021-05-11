@@ -3,12 +3,12 @@ package ca.teamdman.zensummoning.common.summoning;
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.annotations.ZenRegister;
 import com.blamejared.crafttweaker.api.data.IData;
+import com.blamejared.crafttweaker.impl.entity.MCEntityType;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.openzen.zencode.java.ZenCodeType;
 import org.openzen.zencode.java.ZenCodeType.Method;
 
@@ -16,16 +16,17 @@ import org.openzen.zencode.java.ZenCodeType.Method;
 @ZenRegister
 @Document("mods/zensummoning/MobInfo")
 public class MobInfo {
-	private int              count  = 1;
-	private CompoundNBT      data   = new CompoundNBT();
-	private ResourceLocation mob    = new ResourceLocation("");
-	private BlockPos         offset = new BlockPos(0.5, 0, 0.5);
-	private BlockPos         spread = new BlockPos(0, 0, 0);
+	private int          count  = 1;
+	private CompoundNBT  data   = new CompoundNBT();
+	private MCEntityType mob    = null;
+	private BlockPos     offset = new BlockPos(0.5, 0, 0.5);
+	private BlockPos     spread = new BlockPos(0, 0, 0);
 
-	private MobInfo() {
+	@ZenCodeType.Constructor
+	public MobInfo() {
 	}
 
-	MobInfo(CompoundNBT data, ResourceLocation mob, BlockPos offset, BlockPos spread) {
+	MobInfo(CompoundNBT data, MCEntityType mob, BlockPos offset, BlockPos spread) {
 		this.data = data;
 		this.mob = mob;
 		this.offset = offset;
@@ -35,6 +36,8 @@ public class MobInfo {
 	/**
 	 * Creates a new MobInfo with default values.
 	 * See other methods for adding more customization.
+	 *
+	 * Same as constructor.
 	 *
 	 * @return new MobInfo
 	 */
@@ -92,11 +95,12 @@ public class MobInfo {
 	}
 
 	public ResourceLocation getMobId() {
-		return mob;
+		return mob.getInternal()
+				.getRegistryName();
 	}
 
 	public EntityType<?> getEntityType() {
-		return ForgeRegistries.ENTITIES.getValue(mob);
+		return mob.getInternal();
 	}
 
 	/**
@@ -107,8 +111,8 @@ public class MobInfo {
 	 * @docParam mob "minecraft:zombie_villager"
 	 */
 	@Method
-	public MobInfo setMob(String mob) {
-		this.mob = new ResourceLocation(mob);
+	public MobInfo setMob(MCEntityType mob) {
+		this.mob = mob;
 		return this;
 	}
 

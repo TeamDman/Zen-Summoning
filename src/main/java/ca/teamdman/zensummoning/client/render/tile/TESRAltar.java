@@ -23,20 +23,21 @@ public class TESRAltar extends TileEntityRenderer<TileAltar> {
 			return;
 		}
 
-		int   dist  = stacks.size() - 1;
+		int   count  = stacks.size();
 		float scale = 1 - 1f / te.TIME_TO_SPAWN * (te.renderTick + partialTicks);
 		matrixStack.push();
+//		matrixStack.translate(te.getPos().getX(), te.getPos().getY(), te.getPos().getZ());
 		matrixStack.translate(0.5,0,0.5);
 		Vector3f verticalAxis = new Vector3f(0,1,0); // axis to rotate around
 		Vector3f depthAxis = new Vector3f(1,0,0);
 		matrixStack.rotate(verticalAxis.rotation(te.getWorld().getGameTime()/100f));
 		for (ItemStack stack : stacks) {
-			matrixStack.rotate(verticalAxis.rotation(360f / dist));
+			matrixStack.rotate(verticalAxis.rotationDegrees(360f / count));
 			if (te.isSummoning()) {
 				matrixStack.translate(0, 1.2 * (1 - scale), 0);
 			}
 			matrixStack.push();
-			matrixStack.translate(1 + dist / 15f, 0, 0);
+			matrixStack.translate(1 + count / 15f, 0, 0);
 			matrixStack.rotate(verticalAxis.rotationDegrees(90));
 			matrixStack.rotate(depthAxis.rotationDegrees(-90));
 			matrixStack.scale(scale, scale, scale);
