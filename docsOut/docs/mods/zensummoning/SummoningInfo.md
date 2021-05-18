@@ -14,7 +14,7 @@ import mods.zensummoning.SummoningInfo;
 
 :::group{name=create}
 
-Creates a new SummoningInfo with default values. <br />  See other methods for adding more customization.
+Creates a new SummoningInfo with default values. <br />  See other methods for adding more customization. <br />  <br />  Same as constructor.
 
 Returns: new info  
 Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
@@ -26,6 +26,15 @@ SummoningInfo.create();
 ```
 
 :::
+
+## Constructors
+
+No Description Provided
+```zenscript
+new SummoningInfo() as SummoningInfo
+new SummoningInfo();
+```
+
 
 ## Methods
 
@@ -97,13 +106,13 @@ Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
 // SummoningInfo.setMutator(mutator as Consumer<SummoningAttempt>) as SummoningInfo
 
 mySummoningInfo.setMutator((attempt as SummoningAttempt) => {
-             if (attempt.world.raining) {
-                 attempt.success = false;
-                 attempt.message = "Can't summon this in the rain!";
-             } else {
-                 attempt.message = "Good Luck!";
-             }
-         });
+ if (attempt.world.raining) {
+ attempt.success = false;
+ attempt.message = "Can't summon this in the rain!";
+ } else {
+ attempt.message = "Good Luck!";
+ }
+ });
 ```
 
 | Parameter | Type | Description |
