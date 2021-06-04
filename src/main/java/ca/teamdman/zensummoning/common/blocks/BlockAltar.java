@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTier;
@@ -101,7 +102,7 @@ public class BlockAltar extends Block {
 			// attempt summoning
 
 			ItemStack        catalyst = player.getHeldItem(hand);
-			SummoningAttempt result   = altar.attemptSummon(catalyst);
+			SummoningAttempt result   = altar.attemptSummon(catalyst, ((ServerPlayerEntity) player));
 			player.setHeldItem(hand, catalyst);
 			player.sendMessage(new TranslationTextComponent(result.getMessage()), Util.DUMMY_UUID);
 			if (result.isSuccess()) {

@@ -12,10 +12,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.openzen.zencode.java.ZenCodeType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 @ZenCodeType.Name(ZenSummoning.ZEN_PACKAGE + ".SummoningInfo")
 @ZenRegister
@@ -29,9 +28,17 @@ public class SummoningInfo {
 	};
 	private List<IIngredientWithAmount> reagents        = new ArrayList<>();
 	private double                      weight          = 1;
+	private Map<Predicate<SummoningAttempt>, String> conditions = new LinkedHashMap<>();
 
 	@ZenCodeType.Constructor
 	public SummoningInfo() {
+	}
+
+	public Optional<String> getFailedConditionErrorMessage(SummoningAttempt attempt) {
+		return conditions.entrySet().stream()
+				.filter(e -> !e.getKey().test(attempt))
+				.findFirst()
+				.map(Map.Entry::getValue);
 	}
 
 	public static SummoningInfo fromNBT(CompoundNBT compound) {
@@ -89,6 +96,22 @@ public class SummoningInfo {
 	@ZenCodeType.Method
 	public SummoningInfo setWeight(double weight) {
 		this.weight = weight;
+		return this;
+	}
+
+	/**
+	 * Adds an additional condition for the summoning to work.
+	 * This can be used to require a gamestage (or deny one I guess)
+	 *
+	 * @param condition condition
+	 * @param failureMessage chat message on failure
+	 * @return self
+	 * @docParam condition Predicate for summoning to succeed
+	 * @docParam failureMessage Chat message to show on failure
+	 */
+	@ZenCodeType.Method
+	public SummoningInfo addCondition(Predicate<SummoningAttempt> condition, String failureMessage) {
+		conditions.put(condition, failureMessage);
 		return this;
 	}
 

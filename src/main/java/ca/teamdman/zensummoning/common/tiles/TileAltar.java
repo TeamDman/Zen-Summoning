@@ -5,6 +5,7 @@ import ca.teamdman.zensummoning.common.summoning.MobInfo;
 import ca.teamdman.zensummoning.common.summoning.SummoningAttempt;
 import ca.teamdman.zensummoning.common.summoning.SummoningDirector;
 import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
+import ca.teamdman.zensummoning.util.UUIDHelper;
 import ca.teamdman.zensummoning.util.WeightedRandomBag;
 import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
 import com.blamejared.crafttweaker.impl.item.MCItemStackMutable;
@@ -12,6 +13,7 @@ import com.google.common.collect.ImmutableList;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
@@ -32,8 +34,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 
 public class TileAltar extends TileEntity implements ITickableTileEntity {
 	public final  int              TIME_TO_SPAWN   = 5 * 20;
@@ -46,6 +47,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 			markDirty();
 		}
 	};
+	private final Set<UUID>        knownPlayers    = new HashSet<>();
 	public        int              renderTick      = -1;
 	private       int              summonCountdown = -1;
 	private       SummoningInfo    summonInfo;
@@ -62,7 +64,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	public Optional<SummoningAttempt> attemptWorldSummon() {
 		final AxisAlignedBB itemRange = new AxisAlignedBB(-1, -1, -1, 1, 1, 1).offset(pos);
 		for (ItemEntity ent : world.getEntitiesWithinAABB(ItemEntity.class, itemRange)) {
-			SummoningAttempt attempt = attemptSummon(ent.getItem());
+			SummoningAttempt attempt = attemptSummon(ent.getItem(), null);
 			if (attempt.isSuccess())
 				return Optional.of(attempt);
 		}
@@ -74,8 +76,22 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	 * Should be called server-only.
 	 * Likely triggered by a redstone pulse.
 	 */
-	public SummoningAttempt attemptSummon(ItemStack catalyst) {
-		SummoningAttempt attempt = new SummoningAttempt(this.world, this.pos);
+	public SummoningAttempt attemptSummon(ItemStack catalyst, @Nullable ServerPlayerEntity summoner) {
+		if (summoner == null) {
+			assert world != null;
+			assert world.getServer() != null;
+			// lookup a player that has previously used this altar
+			summoner = knownPlayers.stream()
+					.map(world.getServer()
+								 .getPlayerList()::getPlayerByUUID)
+					.filter(Objects::nonNull)
+					.findFirst()
+					.orElse(null);
+		} else {
+			knownPlayers.add(summoner.getUniqueID());
+		}
+
+		SummoningAttempt attempt = new SummoningAttempt(this.world, this.pos, summoner);
 		if (isSummoning()) {
 			attempt.setSuccess(false);
 			attempt.setMessage("chat.zensummoning.busy");
@@ -94,6 +110,13 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		if (!slotsMatch.isPresent()) {
 			attempt.setSuccess(false);
 			attempt.setMessage("chat.zensummoning.unknown_error");
+			return attempt;
+		}
+
+		Optional<String> failedConditionErrorMessage = info.getFailedConditionErrorMessage(attempt);
+		if (failedConditionErrorMessage.isPresent()) {
+			attempt.setSuccess(false);
+			attempt.setMessage(failedConditionErrorMessage.get());
 			return attempt;
 		}
 
@@ -227,7 +250,8 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 				.flatMap(info -> info.getReagents()
 						.stream())
 				.map(IIngredientWithAmount::getIngredient)
-				.anyMatch(r -> r.asVanillaIngredient().test(item));
+				.anyMatch(r -> r.asVanillaIngredient()
+						.test(item));
 	}
 
 	/**
@@ -351,12 +375,6 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 
 	}
 
-	@Nullable
-	@Override
-	public SUpdateTileEntityPacket getUpdatePacket() {
-		return new SUpdateTileEntityPacket(pos, 255, serializeNBT());
-	}
-
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
 		deserializeNBT(pkt.getNbtCompound());
@@ -367,6 +385,9 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		inventory.deserializeNBT(nbt.getCompound("inventory"));
 		renderTick = nbt.getInt("renderTick");
 		summonCountdown = nbt.getInt("summonCountdown");
+		UUIDHelper.deserialize(nbt.getList("knownPlayers", Constants.NBT.TAG_STRING))
+				.forEach(knownPlayers::add);
+
 		if (nbt.contains("summonInfo", Constants.NBT.TAG_COMPOUND))
 			summonInfo = SummoningInfo.fromNBT(nbt.getCompound("summonInfo"));
 		else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
@@ -380,8 +401,15 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		compound.put("inventory", inventory.serializeNBT());
 		compound.putInt("renderTick", renderTick);
 		compound.putInt("summonCountdown", summonCountdown);
+		compound.put("knownPlayers", UUIDHelper.serialize(knownPlayers));
 		if (isSummoning())
 			compound.put("summonInfo", summonInfo.serializeNBT());
 		return super.write(compound);
+	}
+
+	@Nullable
+	@Override
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		return new SUpdateTileEntityPacket(pos, 255, serializeNBT());
 	}
 }

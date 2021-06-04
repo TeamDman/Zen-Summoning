@@ -38,6 +38,27 @@ new SummoningInfo();
 
 ## Methods
 
+:::group{name=addCondition}
+
+Adds an additional condition for the summoning to work.
+ This can be used to require a gamestage (or deny one I guess)
+
+Return Type: [SummoningInfo](/mods/zensummoning/SummoningInfo)
+
+```zenscript
+// SummoningInfo.addCondition(condition as Predicate<SummoningAttempt>, failureMessage as string) as SummoningInfo
+
+mySummoningInfo.addCondition(Predicate for summoning to succeed, Chat message to show on failure);
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| condition | Predicate&lt;[SummoningAttempt](/mods/zensummoning/SummoningAttempt)&gt; | condition |
+| failureMessage | string | chat message on failure |
+
+
+:::
+
 :::group{name=addMob}
 
 Adds a new mob to the summoning.
