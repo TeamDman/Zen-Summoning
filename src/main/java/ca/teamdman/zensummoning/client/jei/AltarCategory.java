@@ -126,5 +126,8 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 											  Color.GRAY.getRGB());
 		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.isCatalystConsumed", summonInfo.isCatalystConsumed()), 0, 9 * i++, Color.GRAY.getRGB());
 		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.weight", summonInfo.getWeight()), 0, 9 * i++, Color.GRAY.getRGB());
+		for (SummoningInfo.SummoningCondition condition : summonInfo.getConditions()) {
+			minecraft.fontRenderer.drawString(matrixStack, condition.JEI_DESCRIPTION, 0, 9 * i++, Color.GRAY.getRGB());
+		}
 	}
 }

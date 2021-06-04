@@ -28,17 +28,33 @@ public class SummoningInfo {
 	};
 	private List<IIngredientWithAmount> reagents        = new ArrayList<>();
 	private double                      weight          = 1;
-	private Map<Predicate<SummoningAttempt>, String> conditions = new LinkedHashMap<>();
+	private List<SummoningCondition> conditions = new LinkedList<>();
 
 	@ZenCodeType.Constructor
 	public SummoningInfo() {
 	}
 
+	public class SummoningCondition {
+		public final Predicate<SummoningAttempt> PREDICATE;
+		public final String FAILURE_MESSAGE;
+		public final String JEI_DESCRIPTION;
+
+		public SummoningCondition(Predicate<SummoningAttempt> PREDICATE, String FAILURE_MESSAGE, String JEI_DESCRIPTION) {
+			this.PREDICATE = PREDICATE;
+			this.FAILURE_MESSAGE = FAILURE_MESSAGE;
+			this.JEI_DESCRIPTION = JEI_DESCRIPTION;
+		}
+	}
+
+	public List<SummoningCondition> getConditions() {
+		return conditions;
+	}
+
 	public Optional<String> getFailedConditionErrorMessage(SummoningAttempt attempt) {
-		return conditions.entrySet().stream()
-				.filter(e -> !e.getKey().test(attempt))
+		return conditions.stream()
+				.filter(condition -> !condition.PREDICATE.test(attempt))
 				.findFirst()
-				.map(Map.Entry::getValue);
+				.map(condition -> condition.FAILURE_MESSAGE);
 	}
 
 	public static SummoningInfo fromNBT(CompoundNBT compound) {
@@ -108,10 +124,11 @@ public class SummoningInfo {
 	 * @return self
 	 * @docParam condition Predicate for summoning to succeed
 	 * @docParam failureMessage Chat message to show on failure
+	 * @docParam jeiDescription Line to show in JEI preview
 	 */
 	@ZenCodeType.Method
-	public SummoningInfo addCondition(Predicate<SummoningAttempt> condition, String failureMessage) {
-		conditions.put(condition, failureMessage);
+	public SummoningInfo addCondition(Predicate<SummoningAttempt> condition, String failureMessage, String jeiDescription) {
+		conditions.add(new SummoningCondition(condition, failureMessage, jeiDescription));
 		return this;
 	}
 

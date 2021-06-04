@@ -88,7 +88,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 					.findFirst()
 					.orElse(null);
 		} else {
-			knownPlayers.add(summoner.getUniqueID());
+			addToKnownPlayers(summoner);
 		}
 
 		SummoningAttempt attempt = new SummoningAttempt(this.world, this.pos, summoner);
@@ -380,6 +380,10 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		deserializeNBT(pkt.getNbtCompound());
 	}
 
+	public void addToKnownPlayers(ServerPlayerEntity playerEntity) {
+		knownPlayers.add(playerEntity.getUniqueID());
+	}
+
 	@Override
 	public void read(BlockState state, CompoundNBT nbt) {
 		inventory.deserializeNBT(nbt.getCompound("inventory"));
@@ -411,5 +415,10 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	@Override
 	public SUpdateTileEntityPacket getUpdatePacket() {
 		return new SUpdateTileEntityPacket(pos, 255, serializeNBT());
+	}
+
+	@Override
+	public CompoundNBT getUpdateTag() {
+		return serializeNBT();
 	}
 }

@@ -6,6 +6,7 @@ import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.InventoryHelper;
@@ -31,11 +32,11 @@ public class BlockAltar extends Block {
 
 	public BlockAltar() {
 		super(AbstractBlock.Properties.create(Material.PISTON)
-									  .notSolid()
-									  .doesNotBlockMovement()
-									  .harvestTool(ToolType.PICKAXE)
-									  .hardnessAndResistance(5,6)
-									  .harvestLevel(ItemTier.STONE.getHarvestLevel()));
+					  .notSolid()
+					  .doesNotBlockMovement()
+					  .harvestTool(ToolType.PICKAXE)
+					  .hardnessAndResistance(5, 6)
+					  .harvestLevel(ItemTier.STONE.getHarvestLevel()));
 	}
 
 	@Override
@@ -52,6 +53,15 @@ public class BlockAltar extends Block {
 	@Override
 	public boolean canConnectRedstone(BlockState state, IBlockReader world, BlockPos pos, @Nullable Direction side) {
 		return true;
+	}
+
+	@Override
+	public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+		if (worldIn.isRemote) return;
+		if (!(placer instanceof ServerPlayerEntity)) return;
+		TileEntity tileEntity = worldIn.getTileEntity(pos);
+		if (!(tileEntity instanceof TileAltar)) return;
+		((TileAltar) tileEntity).addToKnownPlayers(((ServerPlayerEntity) placer));
 	}
 
 	@Override
@@ -76,11 +86,10 @@ public class BlockAltar extends Block {
 			if (!(tile instanceof TileAltar)) {
 				return;
 			}
-			if (((TileAltar) tile).isSummoning())
-				return;
+			if (((TileAltar) tile).isSummoning()) return;
 
 			if (((TileAltar) tile).attemptWorldSummon()
-								  .isPresent()) {
+					.isPresent()) {
 				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_NOTE_BLOCK_FLUTE, SoundCategory.BLOCKS, 0.5f, 0.1f);
 			} else {
 				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 0.05f, 1f);
@@ -91,11 +100,9 @@ public class BlockAltar extends Block {
 
 	@Override
 	public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-		if (world.isRemote)
-			return ActionResultType.CONSUME;
+		if (world.isRemote) return ActionResultType.CONSUME;
 		TileEntity tile = world.getTileEntity(pos);
-		if (!(tile instanceof TileAltar))
-			return ActionResultType.CONSUME; // wtf
+		if (!(tile instanceof TileAltar)) return ActionResultType.CONSUME; // how did we get here
 		TileAltar altar = (TileAltar) tile;
 
 		if (player.isSneaking()) {
@@ -113,7 +120,7 @@ public class BlockAltar extends Block {
 		} else {
 			// item input and output
 			if (player.getHeldItem(hand)
-					  .isEmpty()) {
+					.isEmpty()) {
 				player.setHeldItem(hand, altar.popStack());
 				world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.5f, -0.5f);
 			} else {
