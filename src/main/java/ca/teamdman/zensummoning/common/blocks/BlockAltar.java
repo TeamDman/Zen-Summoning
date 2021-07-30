@@ -29,7 +29,7 @@ public class BlockAltar extends Block {
 	public BlockAltar() {
 		super(Material.ROCK);
 		setRegistryName(new ResourceLocation(ZenSummoning.MOD_ID, "altar"));
-		setTranslationKey("altar");
+		setTranslationKey("zensummoning.altar");
 		setCreativeTab(ZenSummoning.CREATIVE_TAB);
 		setHardness(3);
 	}

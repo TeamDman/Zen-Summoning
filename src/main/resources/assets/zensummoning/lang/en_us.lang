@@ -1,4 +1,4 @@
-tile.altar.name=Summoning Altar
+tile.zensummoning.altar.name=Summoning Altar
 itemGroup.zensummoning=Zen Summoning
 chat.zensummoning.success=The altar hums pleasantly.
 chat.zensummoning.busy=The altar is busy.
