@@ -1,4 +1,4 @@
-tile.altar.name=Beschwörungsaltar
+tile.zensummoning.altar.name=Beschwörungsaltar
 itemGroup.zensummoning=Zen Summoning
 chat.zensummoning.success=Der Altar summt vergnügt.
 chat.zensummoning.busy=Der Altar ist beschäftigt.
