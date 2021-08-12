@@ -68,25 +68,26 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 	public void setIngredients(SummoningInfo summoningInfo, IIngredients ingredients) {
 		List<ItemStack> inputs = Stream.concat(Stream.of(summoningInfo.getCatalyst()),
 											   summoningInfo.getReagents()
-															.stream())
-									   .flatMap(x -> Arrays.stream(x.getIngredient()
-																	.getItems()))
-									   .map(IItemStack::getInternal)
-									   .collect(Collectors.toList());
+													   .stream())
+				.flatMap(x -> Arrays.stream(x.getIngredient()
+													.getItems()))
+				.map(IItemStack::getInternal)
+				.collect(Collectors.toList());
 
 		ListNBT lore = new ListNBT();
 		lore.add(StringNBT.valueOf(I18n.format("jei.zensummoning.catalyst.lore")));
 		inputs.get(0)
-			  .getOrCreateChildTag("display")
-			  .put("Lore", lore);
+				.getOrCreateChildTag("display")
+				.put("Lore", lore);
 
 		List<ItemStack> outputs = summoningInfo.getMobs()
-											   .stream()
-											   .map(MobInfo::getEntityType)
-											   .map(SpawnEggItem::getEgg)
-											   .map(ItemStack::new)
-											   .collect(Collectors.toList());
-
+				.stream()
+				.map(MobInfo::getEntityType)
+				.map(SpawnEggItem::getEgg)
+				.map(ItemStack::new)
+				.filter(stack -> !stack.isEmpty())
+				.collect(Collectors.toList());
+		outputs.add(new ItemStack(Registrar.ALTAR_BLOCK.get()));
 		ingredients.setInputs(VanillaTypes.ITEM, inputs);
 		ingredients.setOutputs(VanillaTypes.ITEM, outputs);
 	}
@@ -96,8 +97,8 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 		IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
 		//		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT / 2 - 24);
 		guiItemStacks.init(0, true, WIDTH / 2 - 8, HEIGHT / 2 - 16);
-		int          size = ingredients.getInputs(VanillaTypes.ITEM)
-									   .size();
+		int size = ingredients.getInputs(VanillaTypes.ITEM)
+				.size();
 		int          i;
 		final double dist = 25 + size * 2;
 		final double cut  = (Math.PI * 2 / (size - 1));
@@ -120,7 +121,7 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 											  I18n.format("jei.zensummoning.recipe.altar.entity",
 														  mob.getCount(),
 														  I18n.format(mob.getEntityType()
-																		 .getTranslationKey())),
+																			  .getTranslationKey())),
 											  0,
 											  9 * i++,
 											  Color.GRAY.getRGB());
