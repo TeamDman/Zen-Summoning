@@ -387,6 +387,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	@Override
 	public void read(BlockState state, CompoundNBT nbt) {
 		inventory.deserializeNBT(nbt.getCompound("inventory"));
+		inventory.setSize(SummoningDirector.getStackLimit());
 		renderTick = nbt.getInt("renderTick");
 		summonCountdown = nbt.getInt("summonCountdown");
 		UUIDHelper.deserialize(nbt.getList("knownPlayers", Constants.NBT.TAG_STRING))
