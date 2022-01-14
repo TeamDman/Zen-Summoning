@@ -20,10 +20,9 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.registry.Registry;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
@@ -368,11 +367,12 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 			}
 		}
 
-		summonInfo = null;
 
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO, SoundCategory.BLOCKS, 0.5f, 1f);
+		SoundEvent toPlay = Registry.SOUND_EVENT.getOptional(new ResourceLocation(summonInfo.getSound())).orElse(SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO);
+		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), toPlay, SoundCategory.BLOCKS, 0.5f, 1f);
 
+		summonInfo = null;
 	}
 
 	@Override

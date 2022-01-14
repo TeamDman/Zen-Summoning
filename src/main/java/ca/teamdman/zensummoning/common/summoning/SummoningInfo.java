@@ -8,6 +8,7 @@ import com.blamejared.crafttweaker_annotations.annotations.Document;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.openzen.zencode.java.ZenCodeType;
@@ -22,39 +23,18 @@ import java.util.function.Predicate;
 public class SummoningInfo {
 	//	private IIngredientWithAmount               catalyst        = IngredientUnknown.INSTANCE;
 	private IIngredientWithAmount       catalyst        = null;
+	private List<SummoningCondition>    conditions      = new LinkedList<>();
 	private boolean                     consumeCatalyst = true;
 	private List<MobInfo>               mobs            = new ArrayList<>();
 	private Consumer<SummoningAttempt>  mutator         = (__) -> {
 	};
 	private List<IIngredientWithAmount> reagents        = new ArrayList<>();
+	private String                      sound           = SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO.getName()
+			.toString();
 	private double                      weight          = 1;
-	private List<SummoningCondition> conditions = new LinkedList<>();
 
 	@ZenCodeType.Constructor
 	public SummoningInfo() {
-	}
-
-	public class SummoningCondition {
-		public final Predicate<SummoningAttempt> PREDICATE;
-		public final String FAILURE_MESSAGE;
-		public final String JEI_DESCRIPTION;
-
-		public SummoningCondition(Predicate<SummoningAttempt> PREDICATE, String FAILURE_MESSAGE, String JEI_DESCRIPTION) {
-			this.PREDICATE = PREDICATE;
-			this.FAILURE_MESSAGE = FAILURE_MESSAGE;
-			this.JEI_DESCRIPTION = JEI_DESCRIPTION;
-		}
-	}
-
-	public List<SummoningCondition> getConditions() {
-		return conditions;
-	}
-
-	public Optional<String> getFailedConditionErrorMessage(SummoningAttempt attempt) {
-		return conditions.stream()
-				.filter(condition -> !condition.PREDICATE.test(attempt))
-				.findFirst()
-				.map(condition -> condition.FAILURE_MESSAGE);
 	}
 
 	public static SummoningInfo fromNBT(CompoundNBT compound) {
@@ -87,7 +67,7 @@ public class SummoningInfo {
 	/**
 	 * Creates a new SummoningInfo with default values.
 	 * See other methods for adding more customization.
-	 *
+	 * <p>
 	 * Same as constructor.
 	 *
 	 * @return new info
@@ -95,6 +75,34 @@ public class SummoningInfo {
 	@ZenCodeType.Method
 	public static SummoningInfo create() {
 		return new SummoningInfo();
+	}
+
+	public String getSound() {
+		return sound;
+	}
+
+	/**
+	 * Sets the sound played when a summon completes.
+	 *
+	 * @param sound sound resource location
+	 * @return self
+	 * @docParam sound "entity.evoker.prepare_wololo"
+	 */
+	@ZenCodeType.Method
+	public SummoningInfo setSound(String sound) {
+		this.sound = sound;
+		return this;
+	}
+
+	public List<SummoningCondition> getConditions() {
+		return conditions;
+	}
+
+	public Optional<String> getFailedConditionErrorMessage(SummoningAttempt attempt) {
+		return conditions.stream()
+				.filter(condition -> !condition.PREDICATE.test(attempt))
+				.findFirst()
+				.map(condition -> condition.FAILURE_MESSAGE);
 	}
 
 	public double getWeight() {
@@ -119,7 +127,7 @@ public class SummoningInfo {
 	 * Adds an additional condition for the summoning to work.
 	 * This can be used to require a gamestage (or deny one I guess)
 	 *
-	 * @param condition condition
+	 * @param condition      condition
 	 * @param failureMessage chat message on failure
 	 * @return self
 	 * @docParam condition Predicate for summoning to succeed
@@ -165,7 +173,6 @@ public class SummoningInfo {
 	public boolean isCatalystConsumed() {
 		return this.consumeCatalyst;
 	}
-
 
 	public List<MobInfo> getMobs() {
 		return Collections.unmodifiableList(mobs);
@@ -244,6 +251,18 @@ public class SummoningInfo {
 		}
 		compound.put("mobs", mobs);
 		return compound;
+	}
+
+	public class SummoningCondition {
+		public final String                      FAILURE_MESSAGE;
+		public final String                      JEI_DESCRIPTION;
+		public final Predicate<SummoningAttempt> PREDICATE;
+
+		public SummoningCondition(Predicate<SummoningAttempt> PREDICATE, String FAILURE_MESSAGE, String JEI_DESCRIPTION) {
+			this.PREDICATE = PREDICATE;
+			this.FAILURE_MESSAGE = FAILURE_MESSAGE;
+			this.JEI_DESCRIPTION = JEI_DESCRIPTION;
+		}
 	}
 
 }
