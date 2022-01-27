@@ -349,7 +349,8 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 				if (mob == null) {
 					return;
 				}
-				mob.deserializeNBT(mobInfo.getData());
+				if (!mobInfo.getData().isEmpty())
+					mob.deserializeNBT(mobInfo.getData());
 				mob.setPosition(getPos().getX() + mobInfo.getOffset()
 										.getX() + world.rand.nextFloat()*(Math.abs(mobInfo.getSpread()
 																					  .getX() * 2) + 1) - Math.abs(mobInfo.getSpread()
