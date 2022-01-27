@@ -18,6 +18,7 @@ import org.openzen.zencode.java.ZenCodeType.Method;
 public class MobInfo {
 	private int          count  = 1;
 	private CompoundNBT  data   = new CompoundNBT();
+	private boolean mergeData   = false;
 	private MCEntityType mob    = null;
 	private Vector3f     offset = new Vector3f(0.5f, 0, 0.5f);
 	private Vector3f     spread = new Vector3f(0, 0, 0);
@@ -71,6 +72,10 @@ public class MobInfo {
 		return data;
 	}
 
+	public boolean shouldMergeData() {
+		return mergeData;
+	}
+
 	/**
 	 * Sets the NBT data of the mobs to be spawned.
 	 *
@@ -91,6 +96,16 @@ public class MobInfo {
 	@Method
 	public MobInfo setData(IData data) {
 		this.data = (CompoundNBT) data.getInternal();
+		return this;
+	}
+
+	/**
+	 * Sets the data to be merged with default rather than overwriting the default.
+	 * @return self
+	 */
+	@Method
+	public MobInfo mergeData() {
+		this.mergeData = true;
 		return this;
 	}
 
