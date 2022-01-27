@@ -101,6 +101,8 @@ public class MobInfo {
 
 	/**
 	 * Sets the data to be merged with default rather than overwriting the default.
+	 * Does NOT need to be called after setData.
+	 *
 	 * @return self
 	 */
 	@Method
