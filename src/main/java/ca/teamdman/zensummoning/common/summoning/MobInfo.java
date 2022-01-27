@@ -8,7 +8,7 @@ import com.blamejared.crafttweaker_annotations.annotations.Document;
 import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3f;
 import org.openzen.zencode.java.ZenCodeType;
 import org.openzen.zencode.java.ZenCodeType.Method;
 
@@ -19,14 +19,14 @@ public class MobInfo {
 	private int          count  = 1;
 	private CompoundNBT  data   = new CompoundNBT();
 	private MCEntityType mob    = null;
-	private BlockPos     offset = new BlockPos(0.5, 0, 0.5);
-	private BlockPos     spread = new BlockPos(0, 0, 0);
+	private Vector3f     offset = new Vector3f(0.5f, 0, 0.5f);
+	private Vector3f     spread = new Vector3f(0, 0, 0);
 
 	@ZenCodeType.Constructor
 	public MobInfo() {
 	}
 
-	MobInfo(CompoundNBT data, MCEntityType mob, BlockPos offset, BlockPos spread) {
+	MobInfo(CompoundNBT data, MCEntityType mob, Vector3f offset, Vector3f spread) {
 		this.data = data;
 		this.mob = mob;
 		this.offset = offset;
@@ -46,7 +46,7 @@ public class MobInfo {
 		return new MobInfo();
 	}
 
-	public BlockPos getSpread() {
+	public Vector3f getSpread() {
 		return spread;
 	}
 
@@ -116,7 +116,7 @@ public class MobInfo {
 		return this;
 	}
 
-	public BlockPos getOffset() {
+	public Vector3f getOffset() {
 		return offset;
 	}
 
@@ -132,8 +132,8 @@ public class MobInfo {
 	 * @docParam z 1
 	 */
 	@Method
-	public MobInfo setOffset(int x, int y, int z) {
-		this.offset = new BlockPos(x, y, z);
+	public MobInfo setOffset(float x, float y, float z) {
+		this.offset = new Vector3f(x,y,z);
 		return this;
 	}
 
@@ -150,10 +150,10 @@ public class MobInfo {
 	 * @docParam z 3
 	 */
 	@Method
-	public MobInfo setSpread(int x, int y, int z) {
+	public MobInfo setSpread(float x, float y, float z) {
 		if (x < 0 || y < 0 || z < 0)
 			System.out.println("Spread operates as a distance factor on each x,y,z plane, distances shouldn't be negative.");
-		this.spread = new BlockPos(Math.abs(x), Math.abs(y), Math.abs(z));
+		this.spread = new Vector3f(Math.abs(x), Math.abs(y), Math.abs(z));
 		return this;
 	}
 }

@@ -351,15 +351,15 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 				}
 				mob.deserializeNBT(mobInfo.getData());
 				mob.setPosition(getPos().getX() + mobInfo.getOffset()
-										.getX() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+										.getX() + world.rand.nextFloat()*(Math.abs(mobInfo.getSpread()
 																					  .getX() * 2) + 1) - Math.abs(mobInfo.getSpread()
 																														   .getX()),
 								getPos().getY() + mobInfo.getOffset()
-										.getY() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+										.getY() + world.rand.nextFloat()*(Math.abs(mobInfo.getSpread()
 																					  .getY() * 2) + 1) - Math.abs(mobInfo.getSpread()
 																														   .getY()),
 								getPos().getZ() + mobInfo.getOffset()
-										.getZ() + world.rand.nextInt(Math.abs(mobInfo.getSpread()
+										.getZ() + world.rand.nextFloat()*(Math.abs(mobInfo.getSpread()
 																					  .getZ() * 2) + 1) - Math.abs(mobInfo.getSpread()
 																														   .getZ()));
 				System.out.printf("%s\n", mob.getPosition());

@@ -9,7 +9,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.openzen.zencode.java.ZenCodeType;
 
@@ -44,8 +44,8 @@ public class SummoningInfo {
 			CompoundNBT mob = mobs.getCompound(i);
 			info.addMob(new MobInfo(mob.getCompound("data"),
 									new MCEntityType(ForgeRegistries.ENTITIES.getValue(new ResourceLocation(mob.getString("mob")))),
-									new BlockPos(mob.getInt("x"), mob.getInt("y"), mob.getInt("z")),
-									new BlockPos(mob.getInt("dx"), mob.getInt("dy"), mob.getInt("dz"))));
+									new Vector3f(mob.getFloat("x"), mob.getFloat("y"), mob.getFloat("z")),
+									new Vector3f(mob.getFloat("dx"), mob.getFloat("dy"), mob.getFloat("dz"))));
 		}
 		return info;
 	}
@@ -229,22 +229,22 @@ public class SummoningInfo {
 						  info.getMobId()
 								  .toString());
 			mob.put("data", info.getData());
-			mob.putInt("x",
+			mob.putFloat("x",
 					   info.getOffset()
 							   .getX());
-			mob.putInt("y",
+			mob.putFloat("y",
 					   info.getOffset()
 							   .getY());
-			mob.putInt("z",
+			mob.putFloat("z",
 					   info.getOffset()
 							   .getZ());
-			mob.putInt("dx",
+			mob.putFloat("dx",
 					   info.getSpread()
 							   .getX());
-			mob.putInt("dy",
+			mob.putFloat("dy",
 					   info.getSpread()
 							   .getY());
-			mob.putInt("dz",
+			mob.putFloat("dz",
 					   info.getSpread()
 							   .getZ());
 			mobs.add(mob);
