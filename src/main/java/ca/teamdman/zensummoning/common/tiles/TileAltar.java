@@ -12,17 +12,22 @@ import com.blamejared.crafttweaker.impl.item.MCItemStackMutable;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
@@ -34,6 +39,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Function;
 
 public class TileAltar extends TileEntity implements ITickableTileEntity {
 	public final  int              TIME_TO_SPAWN   = 5 * 20;
@@ -64,8 +70,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		final AxisAlignedBB itemRange = new AxisAlignedBB(-1, -1, -1, 1, 1, 1).offset(pos);
 		for (ItemEntity ent : world.getEntitiesWithinAABB(ItemEntity.class, itemRange)) {
 			SummoningAttempt attempt = attemptSummon(ent.getItem(), null);
-			if (attempt.isSuccess())
-				return Optional.of(attempt);
+			if (attempt.isSuccess()) return Optional.of(attempt);
 		}
 		return Optional.empty();
 	}
@@ -121,15 +126,15 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 
 		info.getMutator()
 				.accept(attempt);
-		if (!attempt.isSuccess())
-			return attempt;
+		if (!attempt.isSuccess()) return attempt;
 
 		beginSummoning(info);
 		slotsMatch.get()
 				.forEach((slot, count) -> inventory.extractItem(slot, count, false));
-		if (info.isCatalystConsumed())
+		if (info.isCatalystConsumed()) {
 			catalyst.shrink(info.getCatalyst()
 									.getAmount());
+		}
 		return attempt;
 	}
 
@@ -169,11 +174,13 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	private boolean meetsCriteria(SummoningInfo info, ItemStack handStack) {
 		if (!info.getCatalyst()
 				.getIngredient()
-				.matches(new MCItemStackMutable(handStack)))
+				.matches(new MCItemStackMutable(handStack))) {
 			return false;
+		}
 		if (info.getCatalyst()
-				.getAmount() > handStack.getCount())
+				.getAmount() > handStack.getCount()) {
 			return false;
+		}
 		return getIngredientsToConsume(info).isPresent();
 	}
 
@@ -226,11 +233,15 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 			}
 		}
 		if (mask == 0x00) // no matching catalyst
+		{
 			return "chat.zensummoning.no_match";
-		else if (mask == 0x01) // no catalyst that hand quantity satisfies
+		} else if (mask == 0x01) // no catalyst that hand quantity satisfies
+		{
 			return "chat.zensummoning.unsatisfied_hand";
-		else // assuming that recipe contents are unsatisfied, since the hand quantity satisfies
+		} else // assuming that recipe contents are unsatisfied, since the hand quantity satisfies
+		{
 			return "chat.zensummoning.unsatisfied";
+		}
 	}
 
 	private void beginSummoning(SummoningInfo info) {
@@ -240,6 +251,10 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
 		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_EVOKER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
+	}
+
+	public void addToKnownPlayers(ServerPlayerEntity playerEntity) {
+		knownPlayers.add(playerEntity.getUniqueID());
 	}
 
 	public boolean validIngredient(ItemStack item) {
@@ -309,7 +324,6 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		return builder.build();
 	}
 
-
 	@Nonnull
 	@Override
 	public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
@@ -319,16 +333,14 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	@Override
 	public void tick() {
 		if (!isSummoning()) {
-			if (renderTick > -1)
-				renderTick--;
+			if (renderTick > -1) renderTick--;
 			return;
 		}
 
 		summonCountdown--;
 		renderTick++;
 
-		if (summonCountdown > 0)
-			return;
+		if (summonCountdown > 0) return;
 		summonFinish();
 	}
 
@@ -349,7 +361,9 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 				if (mob == null) {
 					return;
 				}
-				if (!mobInfo.getData().isEmpty()) {
+				Vector3d mobPos = getRandomPosition(mobInfo);
+				if (!mobInfo.getData()
+						.isEmpty()) {
 					CompoundNBT newData = mobInfo.getData();
 					if (mobInfo.shouldMergeData()) {
 						CompoundNBT ourData = newData;
@@ -359,62 +373,80 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 						}
 					}
 					mob.deserializeNBT(newData);
+					mob.setPosition(mobPos.x, mobPos.y, mobPos.z);
+					/**
+					 * Passengers must be manually handled.
+					 * @see net.minecraft.command.impl.SummonCommand
+					 * @see net.minecraft.entity.EntityType#loadEntityAndExecute(CompoundNBT, World, Function)
+					 */
+					if (newData.contains("Passengers", Constants.NBT.TAG_LIST)) {
+						ListNBT passengers = newData.getList("Passengers", Constants.NBT.TAG_COMPOUND);
+						passengers.forEach(p -> {
+							Entity e = EntityType.loadEntityAndExecute((CompoundNBT) p, world, rider -> {
+								rider.setLocationAndAngles(mobPos.x, mobPos.y, mobPos.z, rider.rotationYaw, rider.rotationPitch);
+								return rider;
+							});
+							if (e == null) return;
+							e.startRiding(mob, true);
+						});
+					}
+					((ServerWorld) world).func_242106_g(mob);
+				} else {
+					mob.setPosition(mobPos.x, mobPos.y, mobPos.z);
+					world.addEntity(mob);
 				}
-				mob.setPosition(getPos().getX() + mobInfo.getOffset()
-										.getX() + world.rand.nextFloat()*(Math.abs(mobInfo.getSpread()
-																					  .getX() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																														   .getX()),
-								getPos().getY() + mobInfo.getOffset()
-										.getY() + world.rand.nextFloat()*(Math.abs(mobInfo.getSpread()
-																					  .getY() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																														   .getY()),
-								getPos().getZ() + mobInfo.getOffset()
-										.getZ() + world.rand.nextFloat()*(Math.abs(mobInfo.getSpread()
-																					  .getZ() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																														   .getZ()));
-				System.out.printf("%s\n", mob.getPosition());
-				world.addEntity(mob);
 			}
 		}
 
 
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-		SoundEvent toPlay = Registry.SOUND_EVENT.getOptional(new ResourceLocation(summonInfo.getSound())).orElse(SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO);
+		SoundEvent toPlay = Registry.SOUND_EVENT.getOptional(new ResourceLocation(summonInfo.getSound()))
+				.orElse(SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO);
 		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), toPlay, SoundCategory.BLOCKS, 0.5f, 1f);
 
 		summonInfo = null;
 	}
 
-	@Override
-	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-		deserializeNBT(pkt.getNbtCompound());
-	}
+	private Vector3d getRandomPosition(MobInfo mobInfo) {
+		return new Vector3d(getPos().getX() + mobInfo.getOffset()
+				.getX() + world.rand.nextFloat() * (Math.abs(mobInfo.getSpread()
+																	 .getX() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																										  .getX()),
+							getPos().getY() + mobInfo.getOffset()
+									.getY() + world.rand.nextFloat() * (Math.abs(mobInfo.getSpread()
+																						 .getY() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																															  .getY()),
+							getPos().getZ() + mobInfo.getOffset()
+									.getZ() + world.rand.nextFloat() * (Math.abs(mobInfo.getSpread()
+																						 .getZ() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																															  .getZ()));
 
-	public void addToKnownPlayers(ServerPlayerEntity playerEntity) {
-		knownPlayers.add(playerEntity.getUniqueID());
 	}
 
 	@Override
 	public void read(BlockState state, CompoundNBT nbt) {
 		nbt.getCompound("inventory")
 				.putInt("Size",
-						Math.max(
-								SummoningDirector.getStackLimit(),
-								nbt.getCompound("inventory").getInt("Size")
-						)
-				);
+						Math.max(SummoningDirector.getStackLimit(),
+								 nbt.getCompound("inventory")
+										 .getInt("Size")));
 		inventory.deserializeNBT(nbt.getCompound("inventory"));
 		renderTick = nbt.getInt("renderTick");
 		summonCountdown = nbt.getInt("summonCountdown");
 		UUIDHelper.deserialize(nbt.getList("knownPlayers", Constants.NBT.TAG_STRING))
 				.forEach(knownPlayers::add);
 
-		if (nbt.contains("summonInfo", Constants.NBT.TAG_COMPOUND))
+		if (nbt.contains("summonInfo", Constants.NBT.TAG_COMPOUND)) {
 			summonInfo = SummoningInfo.fromNBT(nbt.getCompound("summonInfo"));
-		else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
+		} else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
+		{
 			clientInventory.deserializeNBT(nbt.getCompound("inventory"));
+		}
 
 		super.read(state, nbt);
+	}	@Override
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
+		deserializeNBT(pkt.getNbtCompound());
 	}
 
 	@Override
@@ -423,8 +455,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		compound.putInt("renderTick", renderTick);
 		compound.putInt("summonCountdown", summonCountdown);
 		compound.put("knownPlayers", UUIDHelper.serialize(knownPlayers));
-		if (isSummoning())
-			compound.put("summonInfo", summonInfo.serializeNBT());
+		if (isSummoning()) compound.put("summonInfo", summonInfo.serializeNBT());
 		return super.write(compound);
 	}
 
@@ -438,6 +469,9 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	public CompoundNBT getUpdateTag() {
 		return serializeNBT();
 	}
+
+
+
 
 	@Override
 	public void deserializeNBT(CompoundNBT nbt) {
