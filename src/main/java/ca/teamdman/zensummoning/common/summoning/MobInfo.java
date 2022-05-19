@@ -1,14 +1,13 @@
 package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
-import com.blamejared.crafttweaker.api.annotations.ZenRegister;
-import com.blamejared.crafttweaker.api.data.IData;
-import com.blamejared.crafttweaker.impl.entity.MCEntityType;
+import com.blamejared.crafttweaker.api.annotation.ZenRegister;
+import com.blamejared.crafttweaker.api.data.base.IData;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
-import net.minecraft.entity.EntityType;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3f;
+import com.mojang.math.Vector3f;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import org.openzen.zencode.java.ZenCodeType;
 import org.openzen.zencode.java.ZenCodeType.Method;
 
@@ -16,10 +15,10 @@ import org.openzen.zencode.java.ZenCodeType.Method;
 @ZenRegister
 @Document("mods/zensummoning/MobInfo")
 public class MobInfo {
-	private int          count  = 1;
-	private CompoundNBT  data   = new CompoundNBT();
-	private boolean mergeData   = false;
-	private MCEntityType mob    = null;
+	private int         count     = 1;
+	private CompoundTag data      = new  CompoundTag();
+	private boolean     mergeData = false;
+	private EntityType<?> mob    = null;
 	private Vector3f     offset = new Vector3f(0.5f, 0, 0.5f);
 	private Vector3f     spread = new Vector3f(0, 0, 0);
 
@@ -27,7 +26,7 @@ public class MobInfo {
 	public MobInfo() {
 	}
 
-	MobInfo(CompoundNBT data, MCEntityType mob, Vector3f offset, Vector3f spread) {
+	MobInfo(CompoundTag data, EntityType<?> mob, Vector3f offset, Vector3f spread) {
 		this.data = data;
 		this.mob = mob;
 		this.offset = offset;
@@ -68,7 +67,7 @@ public class MobInfo {
 		return this;
 	}
 
-	public CompoundNBT getData() {
+	public CompoundTag getData() {
 		return data;
 	}
 
@@ -95,7 +94,7 @@ public class MobInfo {
 	 */
 	@Method
 	public MobInfo setData(IData data) {
-		this.data = (CompoundNBT) data.getInternal();
+		this.data = (CompoundTag) data.getInternal();
 		return this;
 	}
 
@@ -112,12 +111,11 @@ public class MobInfo {
 	}
 
 	public ResourceLocation getMobId() {
-		return mob.getInternal()
-				.getRegistryName();
+		return mob.getRegistryName();
 	}
 
 	public EntityType<?> getEntityType() {
-		return mob.getInternal();
+		return mob;
 	}
 
 	/**
@@ -128,7 +126,7 @@ public class MobInfo {
 	 * @docParam mob "minecraft:zombie_villager"
 	 */
 	@Method
-	public MobInfo setMob(MCEntityType mob) {
+	public MobInfo setMob(EntityType mob) {
 		this.mob = mob;
 		return this;
 	}

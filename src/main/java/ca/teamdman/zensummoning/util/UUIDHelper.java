@@ -1,7 +1,7 @@
 package ca.teamdman.zensummoning.util;
 
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -18,17 +18,17 @@ public class UUIDHelper {
 		}
 	}
 
-	public static ListNBT serialize(Collection<UUID> collection) {
+	public static ListTag serialize(Collection<UUID> collection) {
 		return collection.stream()
 				.map(Object::toString)
-				.map(StringNBT::valueOf)
-				.collect(Collectors.toCollection(ListNBT::new));
+				.map(StringTag::valueOf)
+				.collect(Collectors.toCollection(ListTag::new));
 	}
 
-	public static Stream<UUID> deserialize(ListNBT uuidList) {
+	public static Stream<UUID> deserialize(ListTag uuidList) {
 		return uuidList.stream()
-				.map(StringNBT.class::cast)
-				.map(StringNBT::getString)
+				.map(StringTag.class::cast)
+				.map(StringTag::getAsString)
 				.map(UUIDHelper::fromString)
 				.filter(Optional::isPresent)
 				.map(Optional::get);

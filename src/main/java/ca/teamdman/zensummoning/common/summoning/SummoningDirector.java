@@ -2,10 +2,9 @@ package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.CraftTweakerAPI;
-import com.blamejared.crafttweaker.api.actions.IUndoableAction;
-import com.blamejared.crafttweaker.api.annotations.ZenRegister;
+import com.blamejared.crafttweaker.api.action.base.IUndoableAction;
+import com.blamejared.crafttweaker.api.annotation.ZenRegister;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
-import net.minecraftforge.fml.LogicalSide;
 import org.openzen.zencode.java.ZenCodeType;
 
 import java.util.ArrayList;
@@ -77,10 +76,6 @@ public class SummoningDirector {
 		@Override
 		public String describe() {
 			return "Registering summoning " + INFO.toString();
-		}
-
-		public boolean shouldApplyOn(LogicalSide side) {
-			return this.shouldApplySingletons();
 		}
 	}
 }

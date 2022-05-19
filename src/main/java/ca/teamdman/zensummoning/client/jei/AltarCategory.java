@@ -5,21 +5,24 @@ import ca.teamdman.zensummoning.common.Registrar;
 import ca.teamdman.zensummoning.common.summoning.MobInfo;
 import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
 import com.blamejared.crafttweaker.api.item.IItemStack;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.SpawnEggItem;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SpawnEggItem;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -50,9 +53,11 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 	}
 
 	@Override
-	public String getTitle() {
-		return I18n.format("jei.zensummoning.recipe.altar");
+	public Component getTitle() {
+		return new TranslatableComponent("jei.zensummoning.recipe.altar");
 	}
+
+
 
 	@Override
 	public IDrawable getBackground() {
@@ -65,25 +70,25 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 	}
 
 	@Override
-	public void setIngredients(SummoningInfo summoningInfo, IIngredients ingredients) {
-		List<ItemStack> inputs = Stream.concat(Stream.of(summoningInfo.getCatalyst()),
-											   summoningInfo.getReagents()
+	public void setIngredients(SummoningInfo recipe, IIngredients ingredients) {
+		List<ItemStack> inputs = Stream.concat(Stream.of(recipe.getCatalyst()),
+											   recipe.getReagents()
 													   .stream())
 				.flatMap(x -> Arrays.stream(x.getIngredient()
 													.getItems()))
 				.map(IItemStack::getInternal)
-				.collect(Collectors.toList());
+				.toList();
 
-		ListNBT lore = new ListNBT();
-		lore.add(StringNBT.valueOf(I18n.format("jei.zensummoning.catalyst.lore")));
+		ListTag lore = new ListTag();
+		lore.add(StringTag.valueOf(I18n.get("jei.zensummoning.catalyst.lore")));
 		inputs.get(0)
-				.getOrCreateChildTag("display")
+				.getOrCreateTagElement("display")
 				.put("Lore", lore);
 
-		List<ItemStack> outputs = summoningInfo.getMobs()
+		List<ItemStack> outputs = recipe.getMobs()
 				.stream()
 				.map(MobInfo::getEntityType)
-				.map(SpawnEggItem::getEgg)
+				.map(SpawnEggItem::byId)
 				.map(ItemStack::new)
 				.filter(stack -> !stack.isEmpty())
 				.collect(Collectors.toList());
@@ -113,22 +118,22 @@ class AltarCategory implements IRecipeCategory<SummoningInfo> {
 	}
 
 	@Override
-	public void draw(SummoningInfo summonInfo, MatrixStack matrixStack, double mouseX, double mouseY) {
+	public void draw(SummoningInfo recipe, IRecipeSlotsView recipeSlotsView, PoseStack stack, double mouseX, double mouseY) {
 		int       i         = 0;
 		Minecraft minecraft = Minecraft.getInstance();
-		for (MobInfo mob : summonInfo.getMobs())
-			minecraft.fontRenderer.drawString(matrixStack,
-											  I18n.format("jei.zensummoning.recipe.altar.entity",
-														  mob.getCount(),
-														  I18n.format(mob.getEntityType()
-																			  .getTranslationKey())),
-											  0,
-											  9 * i++,
-											  Color.GRAY.getRGB());
-		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.isCatalystConsumed", summonInfo.isCatalystConsumed()), 0, 9 * i++, Color.GRAY.getRGB());
-		minecraft.fontRenderer.drawString(matrixStack, I18n.format("jei.zensummoning.recipe.altar.weight", summonInfo.getWeight()), 0, 9 * i++, Color.GRAY.getRGB());
-		for (SummoningInfo.SummoningCondition condition : summonInfo.getConditions()) {
-			minecraft.fontRenderer.drawString(matrixStack, condition.JEI_DESCRIPTION, 0, 9 * i++, Color.GRAY.getRGB());
+		for (MobInfo mob : recipe.getMobs())
+			minecraft.font.draw(stack,
+								I18n.get("jei.zensummoning.recipe.altar.entity",
+										 mob.getCount(),
+										 I18n.get(mob.getEntityType()
+														  .getDescriptionId())),
+								0,
+								9 * i++,
+								Color.GRAY.getRGB());
+		minecraft.font.draw(stack, I18n.get("jei.zensummoning.recipe.altar.isCatalystConsumed", recipe.isCatalystConsumed()), 0, 9 * i++, Color.GRAY.getRGB());
+		minecraft.font.draw(stack, I18n.get("jei.zensummoning.recipe.altar.weight", recipe.getWeight()), 0, 9 * i++, Color.GRAY.getRGB());
+		for (SummoningInfo.SummoningCondition condition : recipe.getConditions()) {
+			minecraft.font.draw(stack, condition.JEI_DESCRIPTION, 0, 9 * i++, Color.GRAY.getRGB());
 		}
 	}
 }

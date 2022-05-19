@@ -3,7 +3,7 @@ package ca.teamdman.zensummoning.datagen;
 import ca.teamdman.zensummoning.ZenSummoning;
 import ca.teamdman.zensummoning.common.Registrar;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 public class BlockStates extends net.minecraftforge.client.model.generators.BlockStateProvider {

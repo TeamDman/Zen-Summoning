@@ -7,31 +7,34 @@ import ca.teamdman.zensummoning.common.summoning.SummoningDirector;
 import ca.teamdman.zensummoning.common.summoning.SummoningInfo;
 import ca.teamdman.zensummoning.util.UUIDHelper;
 import ca.teamdman.zensummoning.util.WeightedRandomBag;
-import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
-import com.blamejared.crafttweaker.impl.item.MCItemStackMutable;
+import com.blamejared.crafttweaker.api.ingredient.IIngredientWithAmount;
+import com.blamejared.crafttweaker.api.item.MCItemStackMutable;
 import com.google.common.collect.ImmutableList;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import com.mojang.math.Vector3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.entity.EntityTypeTest;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -41,15 +44,15 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
-public class TileAltar extends TileEntity implements ITickableTileEntity {
+public class TileAltar extends BlockEntity {
 	public final  int              TIME_TO_SPAWN   = 5 * 20;
 	private final ItemStackHandler clientInventory = new ItemStackHandler();
 	private final ItemStackHandler inventory       = new ItemStackHandler(SummoningDirector.getStackLimit()) {
 		@Override
 		protected void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
-			world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-			markDirty();
+			level.sendBlockUpdated(getBlockPos(), level.getBlockState(getBlockPos()), level.getBlockState(getBlockPos()), 3);
+			setChanged();
 		}
 	};
 	private final Set<UUID>        knownPlayers    = new HashSet<>();
@@ -57,9 +60,9 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	private       int              summonCountdown = -1;
 	private       SummoningInfo    summonInfo;
 
-	public TileAltar() {
+	public TileAltar(BlockPos pos, BlockState state) {
 		//noinspection ConstantConditions
-		super(Registrar.ALTAR_TILE.get());
+		super(Registrar.ALTAR_TILE.get(), pos, state);
 	}
 
 	/**
@@ -67,8 +70,9 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	 * Only a successful attempt returns a non-empty value.
 	 */
 	public Optional<SummoningAttempt> attemptWorldSummon() {
-		final AxisAlignedBB itemRange = new AxisAlignedBB(-1, -1, -1, 1, 1, 1).offset(pos);
-		for (ItemEntity ent : world.getEntitiesWithinAABB(ItemEntity.class, itemRange)) {
+		final AABB itemRange = new AABB(-1, -1, -1, 1, 1, 1).move(worldPosition);
+
+		for (ItemEntity ent : level.getEntities(EntityTypeTest.forClass(ItemEntity.class), itemRange, x->true)) {
 			SummoningAttempt attempt = attemptSummon(ent.getItem(), null);
 			if (attempt.isSuccess()) return Optional.of(attempt);
 		}
@@ -80,14 +84,14 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	 * Should be called server-only.
 	 * Likely triggered by a redstone pulse.
 	 */
-	public SummoningAttempt attemptSummon(ItemStack catalyst, @Nullable ServerPlayerEntity summoner) {
+	public SummoningAttempt attemptSummon(ItemStack catalyst, @Nullable ServerPlayer summoner) {
 		if (summoner == null) {
-			assert world != null;
-			assert world.getServer() != null;
+			assert level != null;
+			assert level.getServer() != null;
 			// lookup a player that has previously used this altar
 			summoner = knownPlayers.stream()
-					.map(world.getServer()
-								 .getPlayerList()::getPlayerByUUID)
+					.map(level.getServer()
+								 .getPlayerList()::getPlayer)
 					.filter(Objects::nonNull)
 					.findFirst()
 					.orElse(null);
@@ -95,7 +99,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 			addToKnownPlayers(summoner);
 		}
 
-		SummoningAttempt attempt = new SummoningAttempt(this.world, this.pos, summoner);
+		SummoningAttempt attempt = new SummoningAttempt(this.level, this.worldPosition, summoner);
 		if (isSummoning()) {
 			attempt.setSuccess(false);
 			attempt.setMessage("chat.zensummoning.busy");
@@ -249,12 +253,12 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		this.summonCountdown = TIME_TO_SPAWN;
 		this.renderTick = 0;
 
-		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_EVOKER_CAST_SPELL, SoundCategory.BLOCKS, 0.5f, 1f);
+		level.sendBlockUpdated(getBlockPos(), level.getBlockState(getBlockPos()), level.getBlockState(getBlockPos()), 3);
+		level.playSound(null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), SoundEvents.EVOKER_CAST_SPELL, SoundSource.BLOCKS, 0.5f, 1f);
 	}
 
-	public void addToKnownPlayers(ServerPlayerEntity playerEntity) {
-		knownPlayers.add(playerEntity.getUniqueID());
+	public void addToKnownPlayers(ServerPlayer playerEntity) {
+		knownPlayers.add(playerEntity.getUUID());
 	}
 
 	public boolean validIngredient(ItemStack item) {
@@ -330,18 +334,19 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		return cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY ? LazyOptional.of(() -> (T) inventory) : super.getCapability(cap, side);
 	}
 
-	@Override
-	public void tick() {
-		if (!isSummoning()) {
-			if (renderTick > -1) renderTick--;
+
+
+	public static void onServerTick(Level level, BlockPos pos, BlockState state, TileAltar tile) {
+		if (!tile.isSummoning()) {
+			if (tile.renderTick > -1) tile.renderTick--;
 			return;
 		}
 
-		summonCountdown--;
-		renderTick++;
+		tile.summonCountdown--;
+		tile.renderTick++;
 
-		if (summonCountdown > 0) return;
-		summonFinish();
+		if (tile.summonCountdown > 0) return;
+		tile.summonFinish();
 	}
 
 	/**
@@ -349,7 +354,7 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 	 */
 	private void summonFinish() {
 		summonCountdown = -1;
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			summonInfo = null;
 			return;
 		}
@@ -357,74 +362,75 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		for (MobInfo mobInfo : summonInfo.getMobs()) {
 			for (int i = 0; i < mobInfo.getCount(); i++) {
 				Entity mob = mobInfo.getEntityType()
-						.create(world);
+						.create(level);
 				if (mob == null) {
 					return;
 				}
 				Vector3d mobPos = getRandomPosition(mobInfo);
 				if (!mobInfo.getData()
 						.isEmpty()) {
-					CompoundNBT newData = mobInfo.getData();
+					CompoundTag newData = mobInfo.getData();
 					if (mobInfo.shouldMergeData()) {
-						CompoundNBT ourData = newData;
+						CompoundTag ourData = newData;
 						newData = mob.serializeNBT();
-						for (String key : ourData.keySet()) {
+						for (String key : ourData.getAllKeys()) {
 							newData.put(key, ourData.get(key));
 						}
 					}
 					mob.deserializeNBT(newData);
-					mob.setPosition(mobPos.x, mobPos.y, mobPos.z);
+					mob.setPos(mobPos.x, mobPos.y, mobPos.z);
 					/**
 					 * Passengers must be manually handled.
 					 * @see net.minecraft.command.impl.SummonCommand
-					 * @see net.minecraft.entity.EntityType#loadEntityAndExecute(CompoundNBT, World, Function)
+					 * @see net.minecraft.entity.EntityType#loadEntityAndExecute(CompoundTag, World, Function)
 					 */
-					if (newData.contains("Passengers", Constants.NBT.TAG_LIST)) {
-						ListNBT passengers = newData.getList("Passengers", Constants.NBT.TAG_COMPOUND);
+					if (newData.contains("Passengers", Tag.TAG_LIST)) {
+						ListTag passengers = newData.getList("Passengers", Tag.TAG_COMPOUND);
 						passengers.forEach(p -> {
-							Entity e = EntityType.loadEntityAndExecute((CompoundNBT) p, world, rider -> {
-								rider.setLocationAndAngles(mobPos.x, mobPos.y, mobPos.z, rider.rotationYaw, rider.rotationPitch);
+							Entity e = EntityType.loadEntityRecursive((CompoundTag) p, level, rider -> {
+								rider.moveTo(mobPos.x, mobPos.y, mobPos.z, rider.getYRot(), rider.getXRot());
 								return rider;
 							});
 							if (e == null) return;
 							e.startRiding(mob, true);
 						});
 					}
-					((ServerWorld) world).func_242106_g(mob);
+					((ServerLevel) level).tryAddFreshEntityWithPassengers(mob);
 				} else {
-					mob.setPosition(mobPos.x, mobPos.y, mobPos.z);
-					world.addEntity(mob);
+					mob.setPos(mobPos.x, mobPos.y, mobPos.z);
+					level.addFreshEntity(mob);
 				}
 			}
 		}
 
 
-		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+		level.sendBlockUpdated(getBlockPos(), level.getBlockState(getBlockPos()), level.getBlockState(getBlockPos()), 3);
 		SoundEvent toPlay = Registry.SOUND_EVENT.getOptional(new ResourceLocation(summonInfo.getSound()))
-				.orElse(SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO);
-		world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), toPlay, SoundCategory.BLOCKS, 0.5f, 1f);
+				.orElse(SoundEvents.EVOKER_PREPARE_WOLOLO);
+		level.playSound(null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), toPlay, SoundSource.BLOCKS, 0.5f, 1f);
 
 		summonInfo = null;
 	}
 
 	private Vector3d getRandomPosition(MobInfo mobInfo) {
-		return new Vector3d(getPos().getX() + mobInfo.getOffset()
-				.getX() + world.rand.nextFloat() * (Math.abs(mobInfo.getSpread()
-																	 .getX() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																										  .getX()),
-							getPos().getY() + mobInfo.getOffset()
-									.getY() + world.rand.nextFloat() * (Math.abs(mobInfo.getSpread()
-																						 .getY() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																															  .getY()),
-							getPos().getZ() + mobInfo.getOffset()
-									.getZ() + world.rand.nextFloat() * (Math.abs(mobInfo.getSpread()
-																						 .getZ() * 2) + 1) - Math.abs(mobInfo.getSpread()
-																															  .getZ()));
+		return new Vector3d(getBlockPos().getX() + mobInfo.getOffset()
+				.x() + level.random.nextFloat() * (Math.abs(mobInfo.getSpread()
+																	 .x() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																										  .x()),
+							getBlockPos().getY() + mobInfo.getOffset()
+									.y() + level.random.nextFloat() * (Math.abs(mobInfo.getSpread()
+																						 .y() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																															  .y()),
+							getBlockPos().getZ() + mobInfo.getOffset()
+									.z() + level.random.nextFloat() * (Math.abs(mobInfo.getSpread()
+																						 .z() * 2) + 1) - Math.abs(mobInfo.getSpread()
+																															  .z()));
 
 	}
 
 	@Override
-	public void read(BlockState state, CompoundNBT nbt) {
+	public void load(CompoundTag nbt) {
+		super.load(nbt);
 		nbt.getCompound("inventory")
 				.putInt("Size",
 						Math.max(SummoningDirector.getStackLimit(),
@@ -433,48 +439,36 @@ public class TileAltar extends TileEntity implements ITickableTileEntity {
 		inventory.deserializeNBT(nbt.getCompound("inventory"));
 		renderTick = nbt.getInt("renderTick");
 		summonCountdown = nbt.getInt("summonCountdown");
-		UUIDHelper.deserialize(nbt.getList("knownPlayers", Constants.NBT.TAG_STRING))
+		UUIDHelper.deserialize(nbt.getList("knownPlayers", Tag.TAG_STRING))
 				.forEach(knownPlayers::add);
 
-		if (nbt.contains("summonInfo", Constants.NBT.TAG_COMPOUND)) {
+		if (nbt.contains("summonInfo", Tag.TAG_COMPOUND)) {
 			summonInfo = SummoningInfo.fromNBT(nbt.getCompound("summonInfo"));
 		} else if (!isSummoning()) // keep inventory desync'd so render can animate the reagents
 		{
 			clientInventory.deserializeNBT(nbt.getCompound("inventory"));
 		}
 
-		super.read(state, nbt);
-	}	@Override
-	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-		deserializeNBT(pkt.getNbtCompound());
 	}
+//	@Override
+//	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
+//		deserializeNBT(pkt.getNbtCompound());
+//	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound) {
+	public void saveAdditional(CompoundTag compound) {
+		super.saveAdditional(compound);
 		compound.put("inventory", inventory.serializeNBT());
 		compound.putInt("renderTick", renderTick);
 		compound.putInt("summonCountdown", summonCountdown);
 		compound.put("knownPlayers", UUIDHelper.serialize(knownPlayers));
 		if (isSummoning()) compound.put("summonInfo", summonInfo.serializeNBT());
-		return super.write(compound);
 	}
 
-	@Nullable
-	@Override
-	public SUpdateTileEntityPacket getUpdatePacket() {
-		return new SUpdateTileEntityPacket(pos, 255, serializeNBT());
-	}
+//	@Nullable
+//	@Override
+//	public SUpdateTileEntityPacket getUpdatePacket() {
+//		return new SUpdateTileEntityPacket(pos, 255, serializeNBT());
+//	}
 
-	@Override
-	public CompoundNBT getUpdateTag() {
-		return serializeNBT();
-	}
-
-
-
-
-	@Override
-	public void deserializeNBT(CompoundNBT nbt) {
-		super.deserializeNBT(nbt);
-	}
 }

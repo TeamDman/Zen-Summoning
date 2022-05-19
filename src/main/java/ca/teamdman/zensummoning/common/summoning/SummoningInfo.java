@@ -1,15 +1,14 @@
 package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
-import com.blamejared.crafttweaker.api.annotations.ZenRegister;
-import com.blamejared.crafttweaker.api.item.IIngredientWithAmount;
-import com.blamejared.crafttweaker.impl.entity.MCEntityType;
+import com.blamejared.crafttweaker.api.annotation.ZenRegister;
+import com.blamejared.crafttweaker.api.ingredient.IIngredientWithAmount;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.vector.Vector3f;
+import com.mojang.math.Vector3f;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.openzen.zencode.java.ZenCodeType;
 
@@ -22,14 +21,14 @@ import java.util.function.Predicate;
 @Document("mods/zensummoning/SummoningInfo")
 public class SummoningInfo {
 	//	private IIngredientWithAmount               catalyst        = IngredientUnknown.INSTANCE;
-	private IIngredientWithAmount       catalyst        = null;
-	private List<SummoningCondition>    conditions      = new LinkedList<>();
+	private IIngredientWithAmount    catalyst   = null;
+	private List<SummoningCondition> conditions = new LinkedList<>();
 	private boolean                     consumeCatalyst = true;
 	private List<MobInfo>               mobs            = new ArrayList<>();
 	private Consumer<SummoningAttempt>  mutator         = (__) -> {
 	};
 	private List<IIngredientWithAmount> reagents        = new ArrayList<>();
-	private String                      sound           = SoundEvents.ENTITY_EVOKER_PREPARE_WOLOLO.getName()
+	private String                      sound           = SoundEvents.EVOKER_PREPARE_WOLOLO.getRegistryName()
 			.toString();
 	private double                      weight          = 1;
 
@@ -37,13 +36,13 @@ public class SummoningInfo {
 	public SummoningInfo() {
 	}
 
-	public static SummoningInfo fromNBT(CompoundNBT compound) {
+	public static SummoningInfo fromNBT(CompoundTag compound) {
 		SummoningInfo info = new SummoningInfo();
-		ListNBT       mobs = compound.getList("mobs", 10); // get ListNBT<CompoundNBT>
+		ListTag       mobs = compound.getList("mobs", 10); // get ListNBT<CompoundTag>
 		for (int i = 0; i < mobs.size(); i++) {
-			CompoundNBT mob = mobs.getCompound(i);
+			CompoundTag mob = mobs.getCompound(i);
 			info.addMob(new MobInfo(mob.getCompound("data"),
-									new MCEntityType(ForgeRegistries.ENTITIES.getValue(new ResourceLocation(mob.getString("mob")))),
+									ForgeRegistries.ENTITIES.getValue(new ResourceLocation(mob.getString("mob"))),
 									new Vector3f(mob.getFloat("x"), mob.getFloat("y"), mob.getFloat("z")),
 									new Vector3f(mob.getFloat("dx"), mob.getFloat("dy"), mob.getFloat("dz"))));
 		}
@@ -220,33 +219,33 @@ public class SummoningInfo {
 		return this;
 	}
 
-	public CompoundNBT serializeNBT() {
-		CompoundNBT compound = new CompoundNBT();
-		ListNBT     mobs     = new ListNBT();
+	public CompoundTag serializeNBT() {
+		CompoundTag compound = new CompoundTag();
+		ListTag     mobs     = new ListTag();
 		for (MobInfo info : this.mobs) {
-			CompoundNBT mob = new CompoundNBT();
+			CompoundTag mob = new CompoundTag();
 			mob.putString("mob",
 						  info.getMobId()
 								  .toString());
 			mob.put("data", info.getData());
 			mob.putFloat("x",
 					   info.getOffset()
-							   .getX());
+							   .x());
 			mob.putFloat("y",
 					   info.getOffset()
-							   .getY());
+							   .y());
 			mob.putFloat("z",
 					   info.getOffset()
-							   .getZ());
+							   .z());
 			mob.putFloat("dx",
 					   info.getSpread()
-							   .getX());
+							   .x());
 			mob.putFloat("dy",
 					   info.getSpread()
-							   .getY());
+							   .y());
 			mob.putFloat("dz",
 					   info.getSpread()
-							   .getZ());
+							   .z());
 			mobs.add(mob);
 		}
 		compound.put("mobs", mobs);
