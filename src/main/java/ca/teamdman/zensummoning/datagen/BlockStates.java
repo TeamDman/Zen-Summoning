@@ -19,7 +19,5 @@ public class BlockStates extends net.minecraftforge.client.model.generators.Bloc
 					models().withExistingParent("altar", new ResourceLocation(ZenSummoning.MOD_ID, "block/altar_model"))
 							.texture("altar_new", new ResourceLocation(ZenSummoning.MOD_ID, "blocks/altar_new"))
 							.texture("particle", "#altar_new"));
-
-
 	}
 }

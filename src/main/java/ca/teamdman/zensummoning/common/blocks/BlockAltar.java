@@ -21,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -37,6 +38,11 @@ import javax.annotation.Nullable;
 public class BlockAltar extends BaseEntityBlock implements EntityBlock {
 	protected static final VoxelShape SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
 	private final          AABB       bb    = new AABB(0.0625D, 0.0D, 0.0625D, 0.9375D, 0.0625D, 0.9375D);
+
+	@Override
+	public RenderShape getRenderShape(BlockState p_49232_) {
+		return RenderShape.MODEL;
+	}
 
 	public BlockAltar() {
 		super(BlockBehaviour.Properties.of(Material.PISTON)
@@ -154,7 +160,6 @@ public class BlockAltar extends BaseEntityBlock implements EntityBlock {
 	@org.jetbrains.annotations.Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		if (level.isClientSide) return null;
-		return createTickerHelper(type, Registrar.ALTAR_TILE.get(), TileAltar::onServerTick);
+		return createTickerHelper(type, Registrar.ALTAR_TILE.get(), TileAltar::onTick);
 	}
 }

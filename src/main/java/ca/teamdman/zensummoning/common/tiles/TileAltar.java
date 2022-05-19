@@ -17,6 +17,10 @@ import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -336,7 +340,7 @@ public class TileAltar extends BlockEntity {
 
 
 
-	public static void onServerTick(Level level, BlockPos pos, BlockState state, TileAltar tile) {
+	public static void onTick(Level level, BlockPos pos, BlockState state, TileAltar tile) {
 		if (!tile.isSummoning()) {
 			if (tile.renderTick > -1) tile.renderTick--;
 			return;
@@ -450,10 +454,6 @@ public class TileAltar extends BlockEntity {
 		}
 
 	}
-//	@Override
-//	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-//		deserializeNBT(pkt.getNbtCompound());
-//	}
 
 	@Override
 	public void saveAdditional(CompoundTag compound) {
@@ -465,10 +465,21 @@ public class TileAltar extends BlockEntity {
 		if (isSummoning()) compound.put("summonInfo", summonInfo.serializeNBT());
 	}
 
-//	@Nullable
-//	@Override
-//	public SUpdateTileEntityPacket getUpdatePacket() {
-//		return new SUpdateTileEntityPacket(pos, 255, serializeNBT());
-//	}
+	@Override
+	public CompoundTag getUpdateTag() {
+		var tag = new CompoundTag();
+		saveAdditional(tag);
+		return tag;
+	}
 
+	@org.jetbrains.annotations.Nullable
+	@Override
+	public Packet<ClientGamePacketListener> getUpdatePacket() {
+		return ClientboundBlockEntityDataPacket.create(this);
+	}
+
+	@Override
+	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+		deserializeNBT(pkt.getTag());
+	}
 }
