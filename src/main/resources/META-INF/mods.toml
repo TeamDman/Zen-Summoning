@@ -20,13 +20,13 @@ Adds an altar for summoning mobs.
 [[dependencies.zensummoning]]
     modId="forge"
     mandatory=true
-    versionRange="[27,)"
+    versionRange="[40,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.zensummoning]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16,1.17)"
+    versionRange="[1.18,)"
     ordering="NONE"
     side="BOTH"
