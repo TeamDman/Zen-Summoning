@@ -2,8 +2,10 @@ package ca.teamdman.zensummoning.common.summoning;
 
 import ca.teamdman.zensummoning.ZenSummoning;
 import com.blamejared.crafttweaker.api.CraftTweakerAPI;
+import com.blamejared.crafttweaker.api.CraftTweakerConstants;
 import com.blamejared.crafttweaker.api.action.base.IUndoableAction;
 import com.blamejared.crafttweaker.api.annotation.ZenRegister;
+import com.blamejared.crafttweaker.api.zencode.IScriptLoadSource;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 import org.openzen.zencode.java.ZenCodeType;
 
@@ -31,28 +33,28 @@ public class SummoningDirector {
 	/**
 	 * @param info Summoning to add
 	 * @docParam info SummoningInfo.create()
-	 *         .setCatalyst(<item:minecraft:stick>)
-	 *         .setConsumeCatalyst(false)
-	 *         .setReagents([<item:minecraft:stone>, <item:minecraft:egg>*12])
-	 *         .addMob(MobInfo.create().setMob("minecraft:zombie"))
+	 * .setCatalyst(<item:minecraft:stick>)
+	 * .setConsumeCatalyst(false)
+	 * .setReagents([<item:minecraft:stone>, <item:minecraft:egg>*12])
+	 * .addMob(MobInfo.create().setMob("minecraft:zombie"))
 	 */
 	@ZenCodeType.Method
 	public static void addSummonInfo(SummoningInfo info) {
-		CraftTweakerAPI.apply(new AddSummonInfoAction(info, summonings));
+		CraftTweakerAPI.apply(new AddSummonInfoAction(info));
 	}
 
 	private static void tightenStackLimit() {
 		stackLimit = summonings.stream()
-							   .map(SummoningInfo::getReagents)
-							   .mapToInt(List::size)
-							   .max()
-							   .orElse(0);
+				.map(SummoningInfo::getReagents)
+				.mapToInt(List::size)
+				.max()
+				.orElse(0);
 	}
 
 	private static class AddSummonInfoAction implements IUndoableAction {
 		private final SummoningInfo INFO;
 
-		public AddSummonInfoAction(SummoningInfo info, List<SummoningInfo> list) {
+		public AddSummonInfoAction(SummoningInfo info) {
 			this.INFO = info;
 		}
 
@@ -60,6 +62,13 @@ public class SummoningDirector {
 		public void undo() {
 			summonings.remove(INFO);
 			SummoningDirector.tightenStackLimit();
+		}
+
+		@Override
+		public boolean shouldApplyOn(IScriptLoadSource source) {
+			return source.id()
+					.equals(CraftTweakerConstants.RELOAD_LISTENER_SOURCE_ID) || source.id()
+					.equals(CraftTweakerConstants.CLIENT_RECIPES_UPDATED_SOURCE_ID);
 		}
 
 		@Override
