@@ -1,0 +1,7 @@
+{
+  "parent": "zensummoning:block/altar_model",
+  "textures": {
+    "altar_new": "zensummoning:blocks/altar_new",
+    "particle": "#altar_new"
+  }
+}
