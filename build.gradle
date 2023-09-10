@@ -123,6 +123,17 @@ dependencies {
 
 }
 
+compileJava {
+    options.compilerArgs << "-Acrafttweaker.processor.document.output_directory=${file('docsOut')}"
+}
+
+//tasks.withType(JavaCompile).configureEach {
+//    it.options.encoding = 'UTF-8'
+//    it.options.release = 17
+//    it.options.compilerArgs.add("-Acrafttweaker.processor.document.output_directory=${rootProject.file("docsOut")}")
+//    it.options.compilerArgs.add("-Acrafttweaker.processor.document.multi_source=true")
+//}
+
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
     manifest {
